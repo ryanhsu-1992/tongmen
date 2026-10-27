@@ -1,10 +1,36 @@
 <!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#5B3A24"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><meta name="apple-mobile-web-app-title" content="同門會">
 <title>同門會</title>
-<script>/* 記住這支手機（2026-10-27）：iPhone Safari 會清掉 Apps Script 內嵌框的儲存空間，所以裝置憑證改存在這個入口網站（第一方），每次打開時用網址 #dk=… 交給平台（# 後面的內容不會送到任何伺服器；平台讀到後立刻從網址列移除）。 */(function(){var u='https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec',K='tm_dk',L='tm_dk_lo',RE=/^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/;function g(k){try{return localStorage.getItem(k)||''}catch(e){return''}}function s(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}var h=location.hash.replace(/^#/,''),m=/(?:^|&)save=([^&]*)/.exec(h),v=m?decodeURIComponent(m[1]):'';if(h){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}if(RE.test(v)){s(K,v);s(L,'')}if(/(?:^|&)forget=1/.test(h)){s(K,'');s(L,'')}if(/(?:^|&)lo=1/.test(h))s(L,'1');if(/(?:^|&)resume=1/.test(h))s(L,'');if(/[?&]howto\b/.test(location.search)){location.replace('howto.html');return}var d=g(K);if(!RE.test(d))d='';location.replace(u+(d?'#'+(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'#nodk'));})();</script>
+<script>/* 記住這支手機（2026-10-27）：iPhone Safari 會清掉 Apps Script 內嵌框的儲存空間，所以裝置憑證改存在這個入口網站（第一方），每次打開時用網址 #dk=… 交給平台（# 後面的內容不會送到任何伺服器；平台讀到後立刻從網址列移除）。
+   主畫面 App（2026-10-27 晚）：iOS 26 起「加入主畫面」一律是獨立 App，平台（script.google.com）會在 App 內的 Safari 視窗開啟，那裡的儲存空間跟 App 不同；
+   所以 App 模式改用一次性配對碼（#app&pair=…）：會員在平台按「記住這支手機」後，這頁回到前景或下次打開時，自己向伺服器領回憑證，存在 App 裡（只領一次）。 */
+(function(){var u='https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec',K='tm_dk',L='tm_dk_lo',P='tm_pair',N='tm_keep_no',RE=/^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/,PR=/^[0-9a-f]{32}$/;
+function g(k){try{return localStorage.getItem(k)||''}catch(e){return''}}function s(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}
+var h=location.hash.replace(/^#/,''),m=/(?:^|&)save=([^&]*)/.exec(h),v=m?decodeURIComponent(m[1]):'';if(h){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+if(RE.test(v)){s(K,v);s(L,'')}if(/(?:^|&)forget=1/.test(h)){s(K,'');s(L,'')}if(/(?:^|&)lo=1/.test(h))s(L,'1');if(/(?:^|&)resume=1/.test(h))s(L,'');
+if(/[?&]howto\b/.test(location.search)){location.replace('howto.html');return}
+var SA=false;try{SA=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches}catch(e){}
+function dk(){var d=g(K);return RE.test(d)?d:''}
+function rnd(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(x){return(x<16?'0':'')+x.toString(16)}).join('')}
+function pair(){var p=g(P);if(!PR.test(p)){try{p=rnd()}catch(e){return''}s(P,p)}return p}
+function url(){var d=dk(),f=d?(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'nodk';if(SA){var p=pair();if(p){f='app&pair='+p+'&'+f;var n=+g(N)||0;if(n&&Date.now()-n<30*864e5)f+='&keepno'}}return u+'#'+f}
+function apply(j){if(!j||!j.ok)return;var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got)s(P,'')}
+var busy=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||busy){cb&&cb();return}busy=1;var done=false,fin=function(j){if(done)return;done=true;busy=0;try{apply(j)}catch(e){}cb&&cb()};
+try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r){return r.json()}).then(fin,function(){fin(null)})}catch(e){fin(null)}setTimeout(function(){fin(null)},ms||4000)}
+function go(){location.replace(url())}
+window.__tmGo=go;
+if(!SA){go();return}
+// App 模式：有待領的配對碼時先領一次，再進平台；回到前景時也領（會員剛在平台按了「記住」）
+// 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
+if(!dk()||g(L))claim(go);else if(PR.test(g(P)))claim(go,2500);else go();
+var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。'})}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
+window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
+document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){e.preventDefault();go()})});
+})();</script>
 <noscript><meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec"></noscript>
 <style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F5EFE6;color:#241812;font-family:-apple-system,"PingFang TC","Noto Sans CJK TC","Microsoft JhengHei",sans-serif}.box{max-width:360px;padding:32px 24px;text-align:center}.ico{width:120px;height:120px;border-radius:27px;box-shadow:0 6px 18px rgba(36,24,18,.25)}h1{font-size:22px;margin:18px 0 6px}p{color:#6B4A33;font-size:15px;line-height:1.6}.btn{display:inline-block;margin-top:14px;padding:12px 28px;border-radius:999px;background:#5B3A24;color:#F5EFE6;text-decoration:none;font-weight:700}ol{text-align:left;font-size:15px;line-height:1.7;padding-left:22px;margin:18px 0}li{margin-bottom:10px}small{color:#7D6B5C}</style></head><body><div class="box">
 <img class="ico" src="apple-touch-icon.png" alt="同門會">
-<h1>台大矯正同門會</h1><p>正在帶你進入會員平台…</p>
-<a class="btn" href="https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec">進入同門會</a>
+<h1>台大矯正同門會</h1><p id="st">正在帶你進入會員平台…</p>
+<a class="btn" id="go" href="https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec">進入同門會</a>
 <p><small><a href="howto.html" style="color:#7D6B5C">如何加到手機桌面或電腦書籤？</a></small></p>
 </div></body></html>
