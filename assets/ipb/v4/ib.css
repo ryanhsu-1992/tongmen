@@ -1,0 +1,314 @@
+/* round-1028 islandpages：各頁橫幅＝對應島嶼的細節版（10/28 ipbanner 上線：ip/ip2/ip3 三份合併成 ib.css）
+   不改 .tabbar / .side-nav 的 position；所有動畫只用 transform / opacity；減少動態時全部停在最終狀態 */
+.th-banner.ib{background:#F6CB92;isolation:isolate}
+.th-banner.ib>.ed-ph,.th-banner.ib>.ed-shade{display:none}
+.ib-sky{position:absolute;inset:0;z-index:0;transition:opacity .8s}
+.ib[data-season=autumn] .ib-sky{background:radial-gradient(ellipse at 72% 118%,rgba(250,180,110,.55) 0,rgba(250,180,110,0) 58%),linear-gradient(180deg,#F4C692 0%,#F8CD94 38%,#FBCC8D 72%,#F8C282 100%)}
+.ib[data-tod=dawn] .ib-sky{background:radial-gradient(ellipse at 70% 112%,rgba(255,214,180,.6) 0,rgba(255,214,180,0) 60%),linear-gradient(180deg,#8EA3CF 0%,#B9B7D6 35%,#E8C6CF 70%,#FAD7BE 100%)}
+.ib[data-tod=dusk] .ib-sky{background:radial-gradient(ellipse at 70% 108%,rgba(255,186,110,.75) 0,rgba(255,186,110,0) 62%),linear-gradient(180deg,#5E6CA6 0%,#B8879E 38%,#EE9E7F 72%,#F9BF7A 100%)}
+.ib[data-tod=night] .ib-sky{background:radial-gradient(ellipse at 70% 115%,rgba(120,140,220,.35) 0,rgba(120,140,220,0) 55%),linear-gradient(180deg,#0D1838 0%,#18275A 40%,#243A78 75%,#2E4688 100%)}
+.ib-stars{position:absolute;inset:0;z-index:0;opacity:0;transition:opacity .8s}
+.ib[data-tod=night] .ib-stars{opacity:1}.ib[data-tod=dawn] .ib-stars{opacity:.3}
+.ib-star{position:absolute;width:var(--s);height:var(--s);border-radius:50%;background:#FFF8E0;box-shadow:0 0 4px 1px rgba(255,248,220,.7);animation:ib-tw 3.2s ease-in-out infinite alternate}
+.ib-moon{position:absolute;left:46%;top:14%;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 38% 36%,#FFFBEA 0,#FBEFC4 55%,#EBD9A0 100%);box-shadow:0 0 22px 8px rgba(255,244,200,.3),inset -5px -3px 0 rgba(200,180,120,.25)}
+@keyframes ib-tw{from{opacity:.3}to{opacity:1}}
+.ib-clouds{position:absolute;inset:0;z-index:1;pointer-events:none}
+.ib-cloud{position:absolute;opacity:.92;animation:ib-drift linear infinite;will-change:transform}
+.ib[data-tod=night] .ib-cloud{filter:brightness(.42) saturate(.6) hue-rotate(190deg);opacity:.55}
+.ib[data-tod=dusk] .ib-cloud{filter:sepia(.3) saturate(1.2) hue-rotate(-12deg) brightness(.95)}
+@keyframes ib-drift{from{transform:translateX(0)}to{transform:translateX(var(--dx))}}
+.ib-stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;z-index:2;pointer-events:none}
+.ib-art,.ib-glow{position:absolute;inset:0}
+.ib-art img,.ib-glow img,.ib-art .ib-p{position:absolute;display:block;max-width:none}
+.ib-float{position:absolute;inset:0;animation:ib-bob 7s ease-in-out infinite alternate}
+@keyframes ib-bob{from{transform:translateY(-5px)}to{transform:translateY(5px)}}
+.ib[data-tod=dusk] .ib-art{filter:sepia(.16) saturate(1.08) brightness(.93)}
+.ib[data-tod=night] .ib-art{filter:brightness(.6) saturate(.72) contrast(1.05)}
+.ib[data-tod=dawn] .ib-art{filter:sepia(.08) brightness(.98) saturate(.96)}
+.ib-lit{opacity:0;transition:opacity 1.2s ease;filter:drop-shadow(0 0 5px rgba(255,190,100,.85))}
+.ib[data-tod=night] .ib-lit,.ib.ib-course .ib-lit{opacity:1}.ib[data-tod=dusk] .ib-lit{opacity:.6}
+.ib.ib-course .ib-lit{animation:ib-flick 4.6s ease-in-out infinite}
+@keyframes ib-flick{0%,100%{opacity:1}47%{opacity:.86}50%{opacity:.97}53%{opacity:.9}}
+.ib-halo{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(255,206,130,.55) 0,rgba(255,206,130,.18) 40%,rgba(255,206,130,0) 70%);opacity:0;transition:opacity 1.2s;mix-blend-mode:screen}
+.ib[data-tod=night] .ib-halo,.ib.ib-course .ib-halo{opacity:1}.ib[data-tod=dusk] .ib-halo{opacity:.5}
+/* 小醫師：呼吸＋點頭；跳一下 */
+.ib-kid{transform-origin:50% 100%;animation:ib-breath 3.8s ease-in-out infinite}
+@keyframes ib-breath{0%,100%{transform:scale(1,1) rotate(0)}50%{transform:scale(1.006,1.014) rotate(.5deg)}}
+.ib-kid.hop{animation:ib-hop .7s cubic-bezier(.3,1.6,.5,1)}
+@keyframes ib-hop{0%{transform:translateY(0)}35%{transform:translateY(-14px) rotate(-2deg)}70%{transform:translateY(0) scale(1.03,.96)}100%{transform:none}}
+/* 氣球：繞繩子綁點擺動 */
+.ib-bal{position:absolute;inset:0;animation:ib-sway 5.2s ease-in-out infinite alternate}
+@keyframes ib-sway{from{transform:rotate(-3.5deg)}to{transform:rotate(3.5deg)}}
+.ib-bal svg{position:absolute;left:0;top:0;overflow:visible}
+/* 鈴 */
+.ib-bell{transform-origin:50% 6%}
+.ib.ib-course .ib-bell,.ib-bell.ring{animation:ib-ring 1.6s ease-in-out 3}
+@keyframes ib-ring{0%,100%{transform:rotate(0)}15%{transform:rotate(16deg)}35%{transform:rotate(-13deg)}55%{transform:rotate(8deg)}75%{transform:rotate(-4deg)}}
+.ib-wave{position:absolute;width:60px;height:60px;border:3px solid rgba(255,236,190,.9);border-color:transparent rgba(255,236,190,.9) transparent transparent;border-radius:50%;opacity:0}
+.ib.ib-course .ib-wave,.ib-wave.go{animation:ib-wave 1.6s ease-out 3}
+.ib-wave.w2{animation-delay:.25s!important}
+@keyframes ib-wave{0%{opacity:0;transform:scale(.5)}20%{opacity:1}100%{opacity:0;transform:scale(1.5)}}
+/* 公告：新便條飛進來釘上 */
+.ib-note{opacity:0;transform-origin:50% 8%}
+.ib-note.fly{animation:ib-notefly 1.9s cubic-bezier(.25,.8,.3,1) forwards}
+.ib-note.pinned{opacity:1;transform:rotate(var(--r))}
+@keyframes ib-notefly{0%{opacity:0;transform:translate(-620px,-260px) rotate(-38deg) scale(.7)}12%{opacity:1}45%{transform:translate(-230px,-150px) rotate(22deg) scale(.9)}72%{transform:translate(-30px,-26px) rotate(-12deg) scale(1.04)}86%{transform:translate(0,4px) rotate(calc(var(--r) + 3deg)) scale(.98)}100%{opacity:1;transform:rotate(var(--r)) scale(1)}}
+.ib-pinpop{position:absolute;width:70px;height:70px;border-radius:50%;border:3px solid rgba(255,230,170,.95);opacity:0;pointer-events:none}
+.ib-pinpop.go{animation:ib-pop .7s ease-out forwards}
+@keyframes ib-pop{0%{opacity:1;transform:scale(.2)}100%{opacity:0;transform:scale(1.6)}}
+/* 落葉／花瓣／金星（在 figure 座標，不在 stage） */
+.ib-fx{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.ib-fall{position:absolute;top:-8%;left:var(--x);animation:ib-fall var(--d) linear var(--dl) infinite;will-change:transform}
+.ib-fall>img{display:block;width:var(--w);animation:ib-sw calc(var(--d) / 3) ease-in-out var(--dl) infinite alternate}
+@keyframes ib-fall{from{transform:translateY(0)}to{transform:translateY(calc(var(--fh) * 1.2))}}
+@keyframes ib-sw{from{transform:translateX(-14px) rotate(-30deg)}to{transform:translateX(16px) rotate(40deg)}}
+.ib[data-tod=night] .ib-fall>img{filter:brightness(.55) saturate(.7)}
+.ib-spark{position:absolute;width:var(--w);animation:ib-twk 2.6s ease-in-out var(--dl) infinite}
+@keyframes ib-twk{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1) rotate(25deg)}}
+.ib-ffly{position:absolute;width:5px;height:5px;border-radius:50%;background:#FFE9A8;box-shadow:0 0 8px 3px rgba(255,220,140,.75);animation:ib-ff 6s ease-in-out var(--dl) infinite alternate;opacity:0}
+.ib[data-tod=night] .ib-ffly{opacity:1}
+@keyframes ib-ff{0%{transform:translate(0,0)}50%{transform:translate(18px,-12px)}100%{transform:translate(-10px,8px)}}
+/* 文字區：白天米色漸層＋深棕字；傍晚／夜晚深色漸層＋米色字 */
+.ib-shade{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(90deg,rgba(250,238,220,.86) 0%,rgba(250,238,220,.55) 30%,rgba(250,238,220,0) 52%)}
+.ib[data-tod=night] .ib-shade,.ib[data-tod=dusk] .ib-shade{background:linear-gradient(90deg,rgba(13,20,48,.72) 0%,rgba(13,20,48,.3) 34%,rgba(13,20,48,0) 55%)}
+.ib figcaption{z-index:4;right:auto;max-width:46%}
+.ib:not([data-tod=night]):not([data-tod=dusk]) figcaption{color:#3A2418}
+.ib:not([data-tod=night]):not([data-tod=dusk]) .ed-no{color:#A0723F}
+.ib-chip{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:5px 11px 5px 7px;border-radius:999px;background:rgba(255,250,240,.82);color:#7A4E24;font:600 12.5px/1 var(--sans,system-ui);box-shadow:0 1px 0 rgba(160,114,63,.25);opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
+.ib-chip.on{opacity:1;transform:none}
+.ib-chip i{width:18px;height:18px;border-radius:50%;background:#B8452F;color:#FFF3E6;font:700 11px/18px var(--serif,serif);text-align:center;font-style:normal}
+.ib[data-tod=night] .ib-chip{background:rgba(255,240,215,.14);color:#F5E3C3}
+.ib-tap{position:absolute;z-index:5;border:0;padding:0;background:transparent;cursor:pointer;border-radius:30%;-webkit-tap-highlight-color:transparent}
+.ib-tap:focus-visible{outline:2px solid #C49A5C;outline-offset:2px}
+/* 進場 */
+.ib.ib-enter .ib-stage{animation:ib-in .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ib-in{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
+.ib.ib-hold .ib-stage{opacity:0}
+.ib.ib-off *{animation-play-state:paused!important}
+@media (max-width:760px){
+  .ib figcaption{max-width:52%}
+  .ib .ed-title{font-size:23px!important;line-height:1.08}
+  .ib-chip{margin-top:8px;font-size:11px;padding:4px 9px 4px 5px}.ib-chip i{width:15px;height:15px;line-height:15px;font-size:9.5px}
+  .ib-shade{background:linear-gradient(90deg,rgba(250,238,220,.9) 0%,rgba(250,238,220,.6) 34%,rgba(250,238,220,0) 58%)}
+  .ib-moon{left:38%;top:10%;width:22px;height:22px}
+}
+/* 首頁 → 島 → 頁面 的轉場 */
+.ib-tr-sky{position:fixed;inset:0;z-index:35;opacity:0;pointer-events:none;transition:opacity .26s ease}
+.ib-tr-sky.on{opacity:1}
+.ib-tr-img{position:fixed;z-index:36;left:0;top:0;transform-origin:0 0;pointer-events:none;opacity:0;will-change:transform,opacity}
+.isl-scene.ib-zoom{transition:transform .46s cubic-bezier(.55,0,.8,.3)}
+@media (prefers-reduced-motion:reduce){
+  .ib *,.ib .ib-stage{animation:none!important;transition:none!important}
+  .ib-note{opacity:1;transform:rotate(var(--r))}
+  .ib-fx,.ib-clouds .ib-cloud:nth-child(n+2){display:none}
+  .ib-chip{opacity:1;transform:none}
+}
+/* round-1028 islandpages2：會員島（我的資料）、地圖島（會員地圖）的元件與互動；其餘沿用 ip.css */
+.ib2 .ib-cat{transform-origin:50% 92%;animation:ib-catb 4.4s ease-in-out infinite}
+@keyframes ib-catb{0%,100%{transform:scale(1,1)}50%{transform:scale(1.008,1.022)}}
+.ib2 .ib-cat.purr{animation:ib-purr 1.6s ease-in-out}
+@keyframes ib-purr{0%{transform:scale(1)}30%{transform:scale(1.05,1.035)}55%{transform:scale(1.02,1.06)}80%{transform:scale(1.012,1.01)}100%{transform:scale(1)}}
+.ib2 .ib-heart{opacity:0}
+.ib2 .ib-heart.up{animation:ib-heart 1.8s ease-out forwards}
+@keyframes ib-heart{0%{opacity:0;transform:translateY(16px) scale(.4)}20%{opacity:1;transform:translateY(0) scale(1.1)}70%{opacity:1;transform:translate(6px,-26px) scale(1) rotate(8deg)}100%{opacity:0;transform:translate(10px,-46px) scale(.9) rotate(12deg)}}
+.ib2 .ib-env{opacity:0;transform-origin:50% 50%}
+.ib2 .ib-env.fly{animation:ib-env 1.4s cubic-bezier(.3,.7,.3,1) forwards}
+@keyframes ib-env{0%{opacity:0;transform:translate(-520px,-300px) rotate(-30deg) scale(.9)}12%{opacity:1}55%{transform:translate(-150px,-120px) rotate(14deg) scale(1)}85%{opacity:1;transform:translate(-6px,-6px) rotate(-4deg) scale(.86)}100%{opacity:0;transform:translate(0,2px) rotate(0) scale(.35)}}
+/* 回家：白天燈也亮一下再收（夜晚本來就亮） */
+.ib2.ib-home .ib-lit{animation:ib-homelit 3.2s ease-in-out}
+@keyframes ib-homelit{0%{opacity:var(--lo,0)}25%,70%{opacity:1}100%{opacity:var(--lo,0)}}
+.ib2[data-tod=dusk]{--lo:.6}.ib2[data-tod=night]{--lo:1}
+.ib2[data-ib=map] .ib-lit{animation:ib-shim 5s ease-in-out infinite}
+.ib2[data-ib=map]:not([data-tod=night]):not([data-tod=dusk]) .ib-lit{animation:none}
+@keyframes ib-shim{0%,100%{filter:drop-shadow(0 0 4px rgba(255,200,110,.8)) brightness(1)}50%{filter:drop-shadow(0 0 7px rgba(255,210,130,.95)) brightness(1.08)}}
+.ib2.ib-found .ib-lit{animation:ib-homelit 2.6s ease-in-out}
+/* 羅盤指針：平常輕輕晃，點一下轉一圈再定位 */
+.ib2 .ib-needle{animation:ib-ndl 5.5s ease-in-out infinite}
+@keyframes ib-ndl{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+.ib2 .ib-needle.spin{animation:ib-spin 1.7s cubic-bezier(.2,.7,.25,1)}
+@keyframes ib-spin{0%{transform:rotate(-3deg)}55%{transform:rotate(400deg)}72%{transform:rotate(345deg)}86%{transform:rotate(366deg)}100%{transform:rotate(357deg)}}
+/* 新大頭針：從上方落下彈一下，插在地圖上 */
+.ib2 .ib-pin{opacity:0;transform-origin:50% 100%}
+.ib2 .ib-pin.drop{animation:ib-drop .75s cubic-bezier(.4,0,.6,1) forwards}
+.ib2 .ib-pin.pinned{opacity:1}
+@keyframes ib-drop{0%{opacity:0;transform:translateY(-180px)}25%{opacity:1}70%{transform:translateY(0) scale(1.12,.86)}85%{transform:translateY(-8px) scale(.96,1.05)}100%{opacity:1;transform:none}}
+.ib2 .ib-pinring{border-radius:50%;border-width:2.5px}
+.ib2 .ib-pinring.go{animation:ib-pop .8s ease-out forwards}
+/* 會員地圖的扁橫幅（桌機 180px、手機 104px）：字小一點、文字區窄一點 */
+.ib2.ib-flat figcaption{max-width:44%}
+.ib2.ib-flat .ib-moon{left:40%;top:16%;width:24px;height:24px}
+@media (max-width:760px){
+  .ib2.ib-flat figcaption{left:16px;bottom:12px;max-width:50%}
+  .ib2.ib-flat .ed-title{font-size:19px!important}
+  .ib2.ib-flat .ed-no{font-size:9.5px}
+  .ib2.ib-flat .ib-chip{margin-top:5px;font-size:10.5px;padding:3px 8px 3px 4px}
+  .ib2.ib-flat .ib-moon{left:55%;top:9%;width:15px;height:15px}
+  .ib2.ib-flat:not([data-tod=night]):not([data-tod=dusk]) .ib-shade{background:linear-gradient(90deg,rgba(250,238,220,.92) 0%,rgba(250,238,220,.66) 38%,rgba(250,238,220,0) 60%)}
+}
+@media (prefers-reduced-motion:reduce){ .ib2 .ib-pin{opacity:1} .ib2 .ib-env,.ib2 .ib-heart{display:none} }
+
+/* 彩蛋 ─ 我的資料：信箱後面住著一顆戴矯正器的小牙齒（敲信箱才探頭揮手） */
+.ib2 .ib-peek{position:absolute;overflow:hidden}
+.ib2 .ib-peek>img{position:absolute;transform-origin:50% 100%}
+.ib2 .ib-peek.on>img{animation:ib-peek 3.3s cubic-bezier(.3,.8,.3,1) forwards}
+@keyframes ib-peek{0%{transform:translateY(0)}18%{transform:translateY(-60px) rotate(-4deg)}30%{transform:translateY(-56px) rotate(6deg)}42%{transform:translateY(-59px) rotate(-5deg)}54%{transform:translateY(-57px) rotate(5deg)}78%{transform:translateY(-58px) rotate(0)}100%{transform:translateY(2px)}}
+/* 彩蛋 ─ 會員地圖：小路亮成一副牙弓（象牙小牙＋矯正器＋弓絲），像夜裡的小路一樣是「光」不是貼紙 */
+.ib2 .ib-arch{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;opacity:0;filter:drop-shadow(0 1.5px 1px rgba(110,70,30,.35)) drop-shadow(0 0 5px rgba(255,214,140,.95))}
+.ib2 .ib-arch .t>g{opacity:0}
+.ib2 .ib-arch.on{animation:ib-arch 3.4s ease-in-out forwards}
+.ib2 .ib-arch.on .t>g{animation:ib-tooth 3.2s ease-out both}
+.ib2 .ib-arch.on .w1,.ib2 .ib-arch.on .w0{stroke-dasharray:600;stroke-dashoffset:600;animation:ib-wire 1.4s .9s ease-out forwards}
+@keyframes ib-arch{0%{opacity:0}8%,82%{opacity:1}100%{opacity:0}}
+@keyframes ib-tooth{0%{opacity:0}14%,100%{opacity:1}}
+.ib2 .ib-arch .t>g>*{transform-box:fill-box}
+@keyframes ib-wire{to{stroke-dashoffset:0}}
+.ib2 .ib-egglbl{position:absolute;white-space:nowrap;padding:.25em .7em;border-radius:99px;background:rgba(255,246,230,.92);color:#7A4E26;font-weight:600;letter-spacing:.04em;box-shadow:0 2px 6px rgba(90,50,20,.18);opacity:0;pointer-events:none;transform:translateY(.4em)}
+.ib2 .ib-egglbl.on{animation:ib-lbl 3.4s ease forwards}
+@keyframes ib-lbl{0%{opacity:0;transform:translateY(.4em)}15%,80%{opacity:1;transform:none}100%{opacity:0}}
+.ib2[data-tod=night] .ib-egglbl{background:rgba(40,46,80,.85);color:#F5E3C3}
+.ib2 .ib-eggtap{z-index:6}
+@media (prefers-reduced-motion:reduce){ .ib2 .ib-peek.on>img{animation:none;transform:translateY(-58px)} .ib2 .ib-arch.on{animation:none;opacity:1} .ib2 .ib-arch.on .t>g,.ib2 .ib-arch.on path{animation:none;opacity:1;stroke-dashoffset:0} }
+.ib2 .ib-chip.egg{animation:ib-chipegg .5s ease}@keyframes ib-chipegg{0%{transform:scale(.9);opacity:.4}100%{transform:none;opacity:1}}
+
+/* 地圖島 v2（會員地圖）：新診所大頭針錯落落下；彩蛋＝西岸路線上的矯正器一顆顆亮起，像把弓絲「裝上去」 */
+.ib2 .ib-cpin{filter:drop-shadow(0 3px 2px rgba(80,45,20,.25))}
+.ib2 .ib-wire{position:absolute;left:0;top:0}
+.ib2 .ib-wire>i{position:absolute;width:40px;height:40px;border-radius:50%;opacity:0;background:radial-gradient(circle,rgba(255,250,225,1) 0,rgba(255,226,150,.85) 30%,rgba(255,200,110,0) 70%)}
+.ib2 .ib-wire>i::before,.ib2 .ib-wire>i::after{content:"";position:absolute;left:50%;top:50%;width:60px;height:4px;margin:-2px 0 0 -30px;background:linear-gradient(90deg,rgba(255,240,200,0),#FFF6DC,rgba(255,240,200,0))}
+.ib2 .ib-wire>i::after{transform:rotate(90deg)}
+.ib2 .ib-wire.on>i{animation:ib-brk 1.5s ease-out both}
+@keyframes ib-brk{0%{opacity:0;transform:scale(.2) rotate(0)}30%{opacity:1;transform:scale(1.15) rotate(45deg)}100%{opacity:0;transform:scale(.6) rotate(90deg)}}
+.ib2[data-ib=map2] .ib-lit{animation:ib-shim 5s ease-in-out infinite}
+.ib2[data-ib=map2]:not([data-tod=night]):not([data-tod=dusk]) .ib-lit{animation:none}
+.ib2[data-ib=map2].ib-found .ib-lit{animation:ib-homelit 2.6s ease-in-out}
+@media (max-width:760px){ .ib2[data-ib^=map] .ib-moon{left:56%;top:8%;width:16px;height:16px} }
+
+/* map2 桌機中段天空：雲＋燕子（只在寬版） */
+.ib2 .ib-mid,.ib2 .ib-bird{display:none}
+.ib2.ib-flat .ib-mid{display:block;opacity:.85}
+.ib2.ib-flat .ib-bird{display:block;position:absolute;animation:ib-glide 9s ease-in-out infinite;will-change:transform}
+.ib-bird img{display:block;width:100%;filter:drop-shadow(0 2px 2px rgba(80,50,20,.18));transform-origin:50% 60%;animation:ib-flap 1.5s ease-in-out infinite}
+@keyframes ib-glide{0%,100%{transform:translate(0,0) rotate(-3deg)}50%{transform:translate(26px,-6px) rotate(3deg)}}
+@keyframes ib-flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.86) translateY(1px)}}
+.ib2[data-tod=night] .ib-bird{display:none!important}
+.ib2[data-tod=night] .ib-mid{opacity:.4}
+.ib2[data-tod=dusk] .ib-bird img{filter:sepia(.25) brightness(.9) drop-shadow(0 2px 2px rgba(80,50,20,.18))}
+@media (prefers-reduced-motion:reduce){.ib2 .ib-bird,.ib-bird img{animation:none!important}}
+/* round-1028 islandpages3：四季天空（跟首頁群島同色）、冬雪、三個新彩蛋（公告放大鏡、學術活動臼齒鐘舌、意見信箱蠟封信）、意見信箱橫幅 */
+.ib3[data-season=spring]:not([data-tod=dusk]):not([data-tod=night]):not([data-tod=dawn]) .ib-sky{background:radial-gradient(ellipse at 72% 118%,rgba(255,214,196,.55) 0,rgba(255,214,196,0) 60%),linear-gradient(180deg,#9BC7DF 0%,#BBD0DF 35%,#E4D5D9 70%,#FCD3CF 100%)}
+.ib3[data-season=summer]:not([data-tod=dusk]):not([data-tod=night]):not([data-tod=dawn]) .ib-sky{background:radial-gradient(ellipse at 72% 118%,rgba(255,240,200,.45) 0,rgba(255,240,200,0) 55%),linear-gradient(180deg,#32A4EC 0%,#49B8F3 35%,#6CD3FC 70%,#7CDEFE 100%)}
+.ib3[data-season=winter]:not([data-tod=dusk]):not([data-tod=night]):not([data-tod=dawn]) .ib-sky{background:radial-gradient(ellipse at 72% 118%,rgba(255,226,190,.35) 0,rgba(255,226,190,0) 55%),linear-gradient(180deg,#AFB9C6 0%,#B4C0CC 35%,#BAC6D3 70%,#C3CCD8 100%)}
+.th-banner.ib3[data-season=spring]{background:#D8D3DB}.th-banner.ib3[data-season=summer]{background:#55BEF5}.th-banner.ib3[data-season=winter]{background:#B8C3CF}
+/* 夏天藍天：文字區的米色漸層再厚一點，深棕字才讀得清楚 */
+.ib3[data-season=summer]:not([data-tod=dusk]):not([data-tod=night]) .ib-shade{background:linear-gradient(90deg,rgba(250,238,220,.92) 0%,rgba(250,238,220,.66) 32%,rgba(250,238,220,0) 55%)}
+/* 冬天：雪花（CSS 圓點，跟首頁冬季同感） */
+.ib-snow b{display:block;width:var(--w);height:var(--w);border-radius:50%;background:#FFFFFF;box-shadow:0 0 4px rgba(255,255,255,.85);animation:ib-snw calc(var(--d) / 3) ease-in-out var(--dl) infinite alternate}
+@keyframes ib-snw{from{transform:translateX(-9px)}to{transform:translateX(11px)}}
+.ib[data-tod=night] .ib-snow b{opacity:.75}
+/* 意見信箱頁原本沒有橫幅：ib.js 補上的 th-banner 跟其他頁同尺寸 */
+.th-banner-feedback{margin-bottom:26px}@media (max-width:900px){.th-banner-feedback{margin-bottom:20px}}
+.th-banner-feedback:not(.ib) .ed-shade{background:#E9D7BC}
+.ib3 .ib-winhalo{mix-blend-mode:screen}
+.ib3.ib-home .ib-winhalo{animation:ib-homelit 3.2s ease-in-out}
+
+/* 彩蛋 ─ 公告：放大鏡湊近新便條的大頭針，原來是一顆矯正器，金色弓絲滑進槽裡、閃一下 */
+.ib-loupe{position:absolute;width:116px;height:116px;opacity:0;transform:scale(.3);transform-origin:50% 50%;pointer-events:none;filter:drop-shadow(0 4px 5px rgba(80,45,20,.3))}
+.ib-loupe .eg-lens{position:absolute;inset:0;border-radius:50%;border:7px solid #B5874A;box-shadow:inset 0 0 0 2px #E8C98F,inset 0 -6px 12px rgba(150,110,60,.18);background:radial-gradient(circle at 38% 32%,#FFFEF9 0,#F7EEDC 60%,#EEDDBD 100%);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ib-loupe .eg-handle{position:absolute;left:94px;top:92px;width:16px;height:44px;border-radius:8px;background:linear-gradient(90deg,#8A5F2E,#C08F52 50%,#8A5F2E);transform:rotate(-45deg);transform-origin:50% 0}
+.ib-loupe .eg-wire{stroke-dasharray:190;stroke-dashoffset:190}
+.ib-loupe.on{animation:ib-loupe 3.3s cubic-bezier(.3,.8,.3,1) forwards}
+.ib-loupe.on .eg-wire{animation:eg-wire 1s .7s ease-out forwards}
+.ib-loupe.on .eg-glint{animation:eg-glint .9s 1.6s ease-in-out}
+@keyframes ib-loupe{0%{opacity:0;transform:scale(.3) translate(30px,30px)}14%{opacity:1;transform:scale(1.04)}20%,82%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.5) translate(20px,20px)}}
+@keyframes eg-wire{to{stroke-dashoffset:0}}
+.eg-glint{position:absolute;left:-60%;top:-20%;width:40%;height:140%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.95),rgba(255,255,255,0));transform:rotate(20deg);opacity:0;pointer-events:none}
+@keyframes eg-glint{0%{left:-60%;opacity:0}20%{opacity:1}100%{left:130%;opacity:0}}
+
+/* 彩蛋 ─ 學術活動：鐘放大、擺三下，鐘舌原來是一顆戴矯正器的小臼齒 */
+.ib-bellz{position:absolute;opacity:0;transform-origin:50% 4%;pointer-events:none}
+.ib-bellz>img{position:absolute;inset:0;width:100%;height:100%}
+.ib-bellz .eg-clap{position:absolute;transform-origin:50% 0}
+.ib-bellz .eg-clap svg{display:block}
+.ib-float:has(.ib-bellz.on) .ib-bell{opacity:0}
+.ib-top{pointer-events:none}
+.ib-bellz.on{animation:ib-bz 3.3s ease-in-out forwards;filter:drop-shadow(0 3px 4px rgba(80,45,20,.3))}
+.ib-bellz.on .eg-clap{animation:eg-clap 3.3s ease-in-out forwards}
+@keyframes ib-bz{0%{opacity:0;transform:scale(1)}9%{opacity:1;transform:scale(2.4)}19%{transform:scale(2.4) rotate(15deg)}31%{transform:scale(2.4) rotate(-13deg)}43%{transform:scale(2.4) rotate(10deg)}55%{transform:scale(2.4) rotate(-7deg)}66%{transform:scale(2.4) rotate(3deg)}76%,86%{opacity:1;transform:scale(2.4) rotate(0)}100%{opacity:0;transform:scale(1)}}
+@keyframes eg-clap{0%,9%{transform:rotate(0)}21%{transform:rotate(-22deg)}33%{transform:rotate(20deg)}45%{transform:rotate(-16deg)}57%{transform:rotate(11deg)}68%{transform:rotate(-5deg)}78%,100%{transform:rotate(0)}}
+
+/* 彩蛋 ─ 意見信箱：投信口彈出一封信、翻面，咖啡金蠟封上壓著一顆矯正器（弓絲穿過、閃一下），再滑回去 */
+.ib-letter{position:absolute;width:60px;height:40px;opacity:0;pointer-events:none;transform-origin:50% 100%}
+.ib-letter .eg-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:4px;overflow:hidden}
+.ib-letter .eg-front{background:linear-gradient(160deg,transparent 48%,#E2CFAE 49%,#E2CFAE 51%,transparent 52%) 0 0/50% 100% no-repeat,linear-gradient(200deg,transparent 48%,#E2CFAE 49%,#E2CFAE 51%,transparent 52%) 100% 0/50% 100% no-repeat,#FBF3E4;border:2px solid #D8C3A0;box-sizing:border-box}
+.ib-letter .eg-front::after{content:"";position:absolute;left:50%;top:52%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#C8503A;box-shadow:inset -1px -1px 0 rgba(0,0,0,.15)}
+.ib-letter .eg-back{transform:rotateY(180deg)}
+.ib-letter .eg-back svg{display:block}
+.ib-letter .eg-wire{stroke-dasharray:80;stroke-dashoffset:80}
+.ib-letter.on{animation:ib-letter 3.7s cubic-bezier(.3,.75,.3,1) forwards}
+.ib-letter.on .eg-face{box-shadow:0 3px 5px rgba(80,45,20,.28)}   /* 陰影放在信封面上：父層加 filter 會壓平 3D，翻面看不到背面 */
+.ib-letter.on .eg-wire{animation:eg-wire .8s 1.25s ease-out forwards}
+.ib-letter.on .eg-glint{animation:eg-glint .9s 1.9s ease-in-out}
+@keyframes ib-letter{0%{opacity:0;transform:translateY(16px) scale(.55)}10%{opacity:1;transform:translateY(-46px) scale(1.5) rotate(-4deg)}26%{transform:translateY(-60px) scale(1.75)}34%,74%{opacity:1;transform:translateY(-62px) scale(1.8)}86%{opacity:1;transform:translateY(-24px) scale(1.1)}100%{opacity:0;transform:translateY(14px) scale(.5)}}
+.ib-letter .eg-flip{position:absolute;inset:0;transform-style:preserve-3d}
+.ib-letter.on .eg-flip{animation:eg-flip 3.7s cubic-bezier(.3,.75,.3,1) forwards}
+@keyframes eg-flip{0%,10%{transform:rotateY(0)}26%,74%{transform:rotateY(180deg)}86%,100%{transform:rotateY(360deg)}}   /* 翻面獨立一層：外層動透明度會把 3D 壓平 */
+@media (prefers-reduced-motion:reduce){ .ib-loupe.on,.ib-bellz.on,.ib-letter.on{animation:none;opacity:1;transform:none} .ib-loupe.on .eg-wire,.ib-letter.on .eg-wire{animation:none;stroke-dashoffset:0} .ib-letter.on{transform:translateY(-62px) scale(1.8)} .ib-letter.on .eg-flip{animation:none;transform:rotateY(180deg)} }
+@media (min-width:561px){ .th-banner .ib-mbr{display:none} }   /* 意見信箱標題：手機斷成兩行，避免壓到島 */
+
+/* round-1028 artaudit：學術活動的鐘＝從頂端掛點擺動的阻尼單擺（約 .86s、擺幅遞減），鐘舌另切一片、慢半拍跟著擺；只轉切好的鐘，不轉整張圖 */
+.ib-bell{position:absolute;transform-origin:50% var(--hg,5.6%)}
+.ib-bell>img{position:absolute;inset:0;width:100%;height:100%}
+.ib-bell .ib-bc{transform-origin:50% var(--cy,64%)}
+.ib.ib-course .ib-bell{animation:ib-pend .86s linear .3s 1 both}
+.ib.ib-course .ib-bell .ib-bc{animation:ib-pend-c .86s linear .3s 1 both}
+.ib .ib-bell.ring{animation:ib-pendr .86s linear 1}
+.ib .ib-bell.ring .ib-bc{animation:ib-pendr-c .86s linear 1}
+.ib .ib-bell.ring.q{animation:ib-pendq .7s linear 1}
+.ib .ib-bell.ring.q .ib-bc{animation:ib-pendq-c .7s linear 1}
+.ib.ib-course .ib-wave,.ib-wave.go{animation:ib-wave2 .8s ease-out 1}
+.ib-wave.w2{animation-delay:.14s!important}
+@keyframes ib-wave2{0%{opacity:0;transform:scale(.55)}18%{opacity:.95}100%{opacity:0;transform:scale(1.45)}}
+.ib-bellz{transform-origin:50% var(--hg,5.6%)}
+.ib-bellz.on{animation:ib-bz2 3.3s linear forwards}
+.ib-bellz.on .eg-clap{animation:eg-clap2 3.3s linear forwards}
+@media (prefers-reduced-motion:reduce){
+  .ib .ib-bell.ring,.ib.ib-course .ib-bell{animation:ib-nudge .5s ease-out 1!important}
+  .ib .ib-bell.ring .ib-bc{animation:none!important}
+  .ib .ib-bellz.on{transform:scale(1.4)}
+}
+@keyframes ib-nudge{0%,100%{transform:rotate(0)}35%{transform:rotate(5deg)}}
+@keyframes ib-pend{0.0%{transform:rotate(0.00deg)}4.17%{transform:rotate(8.91deg)}8.33%{transform:rotate(11.36deg)}12.5%{transform:rotate(7.71deg)}16.67%{transform:rotate(1.20deg)}20.83%{transform:rotate(-4.32deg)}25.0%{transform:rotate(-6.42deg)}29.17%{transform:rotate(-4.90deg)}33.33%{transform:rotate(-1.37deg)}37.5%{transform:rotate(1.97deg)}41.67%{transform:rotate(3.55deg)}45.83%{transform:rotate(3.03deg)}50.0%{transform:rotate(1.17deg)}54.17%{transform:rotate(-0.81deg)}58.33%{transform:rotate(-1.92deg)}62.5%{transform:rotate(-1.83deg)}66.67%{transform:rotate(-0.88deg)}70.83%{transform:rotate(0.27deg)}75.0%{transform:rotate(1.02deg)}79.17%{transform:rotate(1.09deg)}83.33%{transform:rotate(0.61deg)}87.5%{transform:rotate(-0.04deg)}91.67%{transform:rotate(-0.52deg)}95.83%{transform:rotate(-0.63deg)}100.0%{transform:rotate(0.00deg)}}@keyframes ib-pend-c{0.0%{transform:rotate(0.00deg)}4.17%{transform:rotate(-8.91deg)}8.33%{transform:rotate(-5.58deg)}12.5%{transform:rotate(5.40deg)}16.67%{transform:rotate(11.12deg)}20.83%{transform:rotate(10.07deg)}25.0%{transform:rotate(4.40deg)}29.17%{transform:rotate(-2.04deg)}33.33%{transform:rotate(-5.94deg)}37.5%{transform:rotate(-6.02deg)}41.67%{transform:rotate(-3.16deg)}45.83%{transform:rotate(0.54deg)}50.0%{transform:rotate(3.09deg)}54.17%{transform:rotate(3.53deg)}58.33%{transform:rotate(2.15deg)}62.5%{transform:rotate(0.06deg)}66.67%{transform:rotate(-1.55deg)}70.83%{transform:rotate(-2.02deg)}75.0%{transform:rotate(-1.40deg)}79.17%{transform:rotate(-0.25deg)}83.33%{transform:rotate(0.75deg)}87.5%{transform:rotate(1.14deg)}91.67%{transform:rotate(0.89deg)}95.83%{transform:rotate(0.26deg)}100.0%{transform:rotate(0.00deg)}}
+@keyframes ib-pendr{0.0%{transform:rotate(0.00deg)}4.17%{transform:rotate(8.91deg)}8.33%{transform:rotate(11.36deg)}12.5%{transform:rotate(7.71deg)}16.67%{transform:rotate(1.20deg)}20.83%{transform:rotate(-4.32deg)}25.0%{transform:rotate(-6.42deg)}29.17%{transform:rotate(-4.90deg)}33.33%{transform:rotate(-1.37deg)}37.5%{transform:rotate(1.97deg)}41.67%{transform:rotate(3.55deg)}45.83%{transform:rotate(3.03deg)}50.0%{transform:rotate(1.17deg)}54.17%{transform:rotate(-0.81deg)}58.33%{transform:rotate(-1.92deg)}62.5%{transform:rotate(-1.83deg)}66.67%{transform:rotate(-0.88deg)}70.83%{transform:rotate(0.27deg)}75.0%{transform:rotate(1.02deg)}79.17%{transform:rotate(1.09deg)}83.33%{transform:rotate(0.61deg)}87.5%{transform:rotate(-0.04deg)}91.67%{transform:rotate(-0.52deg)}95.83%{transform:rotate(-0.63deg)}100.0%{transform:rotate(0.00deg)}}@keyframes ib-pendr-c{0.0%{transform:rotate(0.00deg)}4.17%{transform:rotate(-8.91deg)}8.33%{transform:rotate(-5.58deg)}12.5%{transform:rotate(5.40deg)}16.67%{transform:rotate(11.12deg)}20.83%{transform:rotate(10.07deg)}25.0%{transform:rotate(4.40deg)}29.17%{transform:rotate(-2.04deg)}33.33%{transform:rotate(-5.94deg)}37.5%{transform:rotate(-6.02deg)}41.67%{transform:rotate(-3.16deg)}45.83%{transform:rotate(0.54deg)}50.0%{transform:rotate(3.09deg)}54.17%{transform:rotate(3.53deg)}58.33%{transform:rotate(2.15deg)}62.5%{transform:rotate(0.06deg)}66.67%{transform:rotate(-1.55deg)}70.83%{transform:rotate(-2.02deg)}75.0%{transform:rotate(-1.40deg)}79.17%{transform:rotate(-0.25deg)}83.33%{transform:rotate(0.75deg)}87.5%{transform:rotate(1.14deg)}91.67%{transform:rotate(0.89deg)}95.83%{transform:rotate(0.26deg)}100.0%{transform:rotate(0.00deg)}}
+@keyframes ib-pendq{0.0%{transform:rotate(0.00deg)}6.25%{transform:rotate(2.54deg)}12.5%{transform:rotate(2.79deg)}18.75%{transform:rotate(1.27deg)}25.0%{transform:rotate(-0.58deg)}31.25%{transform:rotate(-1.52deg)}37.5%{transform:rotate(-1.27deg)}43.75%{transform:rotate(-0.31deg)}50.0%{transform:rotate(0.55deg)}56.25%{transform:rotate(0.82deg)}62.5%{transform:rotate(0.52deg)}68.75%{transform:rotate(-0.01deg)}75.0%{transform:rotate(-0.38deg)}81.25%{transform:rotate(-0.41deg)}87.5%{transform:rotate(-0.18deg)}93.75%{transform:rotate(0.09deg)}100.0%{transform:rotate(0.00deg)}}@keyframes ib-pendq-c{0.0%{transform:rotate(0.00deg)}6.25%{transform:rotate(-2.54deg)}12.5%{transform:rotate(-0.24deg)}18.75%{transform:rotate(1.91deg)}25.0%{transform:rotate(2.27deg)}31.25%{transform:rotate(1.14deg)}37.5%{transform:rotate(-0.35deg)}43.75%{transform:rotate(-1.19deg)}50.0%{transform:rotate(-1.06deg)}56.25%{transform:rotate(-0.32deg)}62.5%{transform:rotate(0.39deg)}68.75%{transform:rotate(0.66deg)}75.0%{transform:rotate(0.44deg)}81.25%{transform:rotate(0.02deg)}87.5%{transform:rotate(-0.29deg)}93.75%{transform:rotate(-0.33deg)}100.0%{transform:rotate(0.00deg)}}
+@keyframes ib-bz2{0.00%{opacity:0.00;transform:scale(1.000) rotate(0.00deg)}1.67%{opacity:0.28;transform:scale(1.167) rotate(0.00deg)}3.33%{opacity:0.56;transform:scale(1.333) rotate(0.00deg)}5.00%{opacity:0.83;transform:scale(1.500) rotate(0.00deg)}6.67%{opacity:1.00;transform:scale(1.667) rotate(0.00deg)}8.33%{opacity:1.00;transform:scale(1.800) rotate(2.41deg)}10.00%{opacity:1.00;transform:scale(1.800) rotate(11.89deg)}11.67%{opacity:1.00;transform:scale(1.800) rotate(15.49deg)}13.33%{opacity:1.00;transform:scale(1.800) rotate(13.11deg)}15.00%{opacity:1.00;transform:scale(1.800) rotate(6.70deg)}16.67%{opacity:1.00;transform:scale(1.800) rotate(-0.78deg)}18.33%{opacity:1.00;transform:scale(1.800) rotate(-6.56deg)}20.00%{opacity:1.00;transform:scale(1.800) rotate(-9.00deg)}21.67%{opacity:1.00;transform:scale(1.800) rotate(-7.90deg)}23.33%{opacity:1.00;transform:scale(1.800) rotate(-4.30deg)}25.00%{opacity:1.00;transform:scale(1.800) rotate(0.08deg)}26.67%{opacity:1.00;transform:scale(1.800) rotate(3.60deg)}28.33%{opacity:1.00;transform:scale(1.800) rotate(5.21deg)}30.00%{opacity:1.00;transform:scale(1.800) rotate(4.74deg)}31.67%{opacity:1.00;transform:scale(1.800) rotate(2.74deg)}33.33%{opacity:1.00;transform:scale(1.800) rotate(0.18deg)}35.00%{opacity:1.00;transform:scale(1.800) rotate(-1.95deg)}36.67%{opacity:1.00;transform:scale(1.800) rotate(-3.01deg)}38.33%{opacity:1.00;transform:scale(1.800) rotate(-2.84deg)}40.00%{opacity:1.00;transform:scale(1.800) rotate(-1.73deg)}41.67%{opacity:1.00;transform:scale(1.800) rotate(-0.24deg)}43.33%{opacity:1.00;transform:scale(1.800) rotate(1.05deg)}45.00%{opacity:1.00;transform:scale(1.800) rotate(1.73deg)}46.67%{opacity:1.00;transform:scale(1.800) rotate(1.69deg)}48.33%{opacity:1.00;transform:scale(1.800) rotate(1.08deg)}50.00%{opacity:1.00;transform:scale(1.800) rotate(0.22deg)}51.67%{opacity:1.00;transform:scale(1.800) rotate(-0.56deg)}53.33%{opacity:1.00;transform:scale(1.800) rotate(-0.99deg)}55.00%{opacity:1.00;transform:scale(1.800) rotate(-1.01deg)}56.67%{opacity:1.00;transform:scale(1.800) rotate(-0.67deg)}58.33%{opacity:1.00;transform:scale(1.800) rotate(-0.17deg)}60.00%{opacity:1.00;transform:scale(1.800) rotate(0.29deg)}61.67%{opacity:1.00;transform:scale(1.800) rotate(0.57deg)}63.33%{opacity:1.00;transform:scale(1.800) rotate(0.60deg)}65.00%{opacity:1.00;transform:scale(1.800) rotate(0.42deg)}66.67%{opacity:1.00;transform:scale(1.800) rotate(0.13deg)}68.33%{opacity:1.00;transform:scale(1.800) rotate(-0.15deg)}70.00%{opacity:1.00;transform:scale(1.800) rotate(-0.32deg)}71.67%{opacity:1.00;transform:scale(1.800) rotate(-0.35deg)}73.33%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}75.00%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}76.67%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}78.33%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}80.00%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}81.67%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}83.33%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}85.00%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}86.67%{opacity:1.00;transform:scale(1.800) rotate(0.00deg)}88.33%{opacity:0.97;transform:scale(1.778) rotate(0.00deg)}90.00%{opacity:0.83;transform:scale(1.667) rotate(0.00deg)}91.67%{opacity:0.69;transform:scale(1.556) rotate(0.00deg)}93.33%{opacity:0.56;transform:scale(1.444) rotate(0.00deg)}95.00%{opacity:0.42;transform:scale(1.333) rotate(0.00deg)}96.67%{opacity:0.28;transform:scale(1.222) rotate(0.00deg)}98.33%{opacity:0.14;transform:scale(1.111) rotate(0.00deg)}100.00%{opacity:0.00;transform:scale(1.000) rotate(0.00deg)}}@keyframes eg-clap2{0.00%{transform:rotate(0.00deg)}1.67%{transform:rotate(0.00deg)}3.33%{transform:rotate(0.00deg)}5.00%{transform:rotate(0.00deg)}6.67%{transform:rotate(0.00deg)}8.33%{transform:rotate(-2.41deg)}10.00%{transform:rotate(-11.89deg)}11.67%{transform:rotate(-7.78deg)}13.33%{transform:rotate(3.61deg)}15.00%{transform:rotate(11.60deg)}16.67%{transform:rotate(14.10deg)}18.33%{transform:rotate(11.30deg)}20.00%{transform:rotate(5.17deg)}21.67%{transform:rotate(-1.56deg)}23.33%{transform:rotate(-6.47deg)}25.00%{transform:rotate(-8.23deg)}26.67%{transform:rotate(-6.84deg)}28.33%{transform:rotate(-3.38deg)}30.00%{transform:rotate(0.58deg)}31.67%{transform:rotate(3.58deg)}33.33%{transform:rotate(4.79deg)}35.00%{transform:rotate(4.13deg)}36.67%{transform:rotate(2.18deg)}38.33%{transform:rotate(-0.14deg)}40.00%{transform:rotate(-1.97deg)}41.67%{transform:rotate(-2.78deg)}43.33%{transform:rotate(-2.48deg)}45.00%{transform:rotate(-1.40deg)}46.67%{transform:rotate(-0.04deg)}48.33%{transform:rotate(1.08deg)}50.00%{transform:rotate(1.61deg)}51.67%{transform:rotate(1.49deg)}53.33%{transform:rotate(0.88deg)}55.00%{transform:rotate(0.09deg)}56.67%{transform:rotate(-0.58deg)}58.33%{transform:rotate(-0.93deg)}60.00%{transform:rotate(-0.89deg)}61.67%{transform:rotate(-0.56deg)}63.33%{transform:rotate(-0.09deg)}65.00%{transform:rotate(0.31deg)}66.67%{transform:rotate(0.53deg)}68.33%{transform:rotate(0.53deg)}70.00%{transform:rotate(0.35deg)}71.67%{transform:rotate(0.08deg)}73.33%{transform:rotate(0.00deg)}75.00%{transform:rotate(0.00deg)}76.67%{transform:rotate(0.00deg)}78.33%{transform:rotate(0.00deg)}80.00%{transform:rotate(0.00deg)}81.67%{transform:rotate(0.00deg)}83.33%{transform:rotate(0.00deg)}85.00%{transform:rotate(0.00deg)}86.67%{transform:rotate(0.00deg)}88.33%{transform:rotate(0.00deg)}90.00%{transform:rotate(0.00deg)}91.67%{transform:rotate(0.00deg)}93.33%{transform:rotate(0.00deg)}95.00%{transform:rotate(0.00deg)}96.67%{transform:rotate(0.00deg)}98.33%{transform:rotate(0.00deg)}100.00%{transform:rotate(0.00deg)}}
+
+/* round-1028 artaudit：夜裡台灣不發金光（夜燈層海岸線已降到 30%，只剩大頭針淡淡的光）；窗燈黃昏／夜晚輕輕閃（只動 opacity，11/19 靜止、減少動態時靜止、捲出畫面暫停） */
+.ib2[data-ib=map2][data-tod=night] .ib-lit,.ib2[data-ib=map2][data-tod=dusk] .ib-lit{filter:drop-shadow(0 0 2.5px rgba(255,196,110,.45));animation:ib-pinglow 5.6s ease-in-out infinite}
+.ib2[data-ib=map2][data-tod=night] .ib-lit{opacity:.82}.ib2[data-ib=map2][data-tod=dusk] .ib-lit{opacity:.5}
+@keyframes ib-pinglow{0%,100%{opacity:.82}50%{opacity:.62}}
+.ib2[data-ib=map2][data-tod=dusk] .ib-lit{animation-name:ib-pinglowd}
+@keyframes ib-pinglowd{0%,100%{opacity:.5}50%{opacity:.36}}
+.ib2[data-ib=map2].ib-found .ib-lit{animation:ib-homelit 2.6s ease-in-out}
+.ib:not([data-ib=map2])[data-tod=night] .ib-lit{animation:ib-twk 4.8s ease-in-out infinite}
+.ib:not([data-ib=map2])[data-tod=dusk] .ib-lit{animation:ib-twkd 6.2s ease-in-out infinite}
+@keyframes ib-twk{0%,100%{opacity:1}22%{opacity:.8}30%{opacity:.97}61%{opacity:.86}}
+@keyframes ib-twkd{0%,100%{opacity:.6}40%{opacity:.42}70%{opacity:.56}}
+.ib[data-tod=night] .ib-winhalo{animation:ib-twkh 4.8s ease-in-out -1.3s infinite}
+.ib[data-tod=dusk] .ib-winhalo{animation:ib-twkhd 6.2s ease-in-out -1.3s infinite}
+@keyframes ib-twkh{0%,100%{opacity:1;transform:scale(1)}35%{opacity:.72;transform:scale(.94)}66%{opacity:.92;transform:scale(1.03)}}
+@keyframes ib-twkhd{0%,100%{opacity:.5;transform:scale(1)}45%{opacity:.34;transform:scale(.95)}}
+.ib.ib-course .ib-lit{animation:ib-flick 4.6s ease-in-out infinite}
+.ib.ib-home .ib-lit,.ib3.ib-home .ib-winhalo{animation:ib-homelit 3.2s ease-in-out}
+.ib[data-fest=mem1119] .ib-lit,.ib[data-fest=mem1119] .ib-winhalo{animation:none!important}
+.ib.ib-off *,.ib.ib-off{animation-play-state:paused!important}
+
+/* 10/29 減少動態時字卡也要看得到（原本被 .ib * animation:none!important 擋成 opacity 0） */
+@media (prefers-reduced-motion:reduce){ .ib2 .ib-egglbl.on{opacity:1;transform:none} }
+
+/* 10/29 彩蛋黏土版（預覽）：信、放大鏡、鐘舌、西岸弓絲亮點改用黏土圖 */
+.ib-letter .eg-clay{background:none!important;border:0!important;overflow:visible}
+.ib-letter .eg-clay>img{position:absolute;inset:-4px -2px;width:calc(100% + 4px);height:calc(100% + 8px);object-fit:contain}
+.ib-loupe .eg-clayloupe{position:absolute;left:-1px;top:-1px;width:145px;height:auto}
+.ib-loupe .eg-lens.eg-clay{inset:auto;left:11px;top:11px;width:94px;height:94px;border:0;box-shadow:none;background:none;border-radius:50%;overflow:hidden}
+.ib2 .ib-wire>i{background:url(common2/clay-bead.webp) center/22px no-repeat,radial-gradient(circle,rgba(255,250,225,.95) 0,rgba(255,226,150,.7) 32%,rgba(255,200,110,0) 70%)}
+.ib2 .ib-wire>i::before,.ib2 .ib-wire>i::after{display:none}
