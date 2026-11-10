@@ -1,0 +1,85 @@
+<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#5B3A24"><link rel="manifest" href="fdtest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png"><meta name="apple-mobile-web-app-title" content="同門會測試"><meta name="robots" content="noindex">
+<title>同門會（測試入口）</title>
+<script>/* 記住這支手機（2026-10-27）：iPhone Safari 會清掉 Apps Script 內嵌框的儲存空間，所以裝置憑證改存在這個入口網站（第一方），每次打開時用網址 #dk=… 交給平台（# 後面的內容不會送到任何伺服器；平台讀到後立刻從網址列移除）。
+   主畫面 App（2026-10-27 晚）：iOS 26 起「加入主畫面」一律是獨立 App，平台（script.google.com）會在 App 內的 Safari 視窗開啟，那裡的儲存空間跟 App 不同；
+   所以 App 模式改用一次性配對碼（#app&pair=…）：會員在平台按「記住這支手機」後，這頁回到前景或下次打開時，自己向伺服器領回憑證，存在 App 裡（只領一次）。 */
+(function(){var u='https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec',K='tm_dk',L='tm_dk_lo',P='tm_pair',N='tm_keep_no',RE=/^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/,PR=/^[0-9a-f]{32}$/;
+function g(k){try{return localStorage.getItem(k)||''}catch(e){return''}}function s(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}
+var h=location.hash.replace(/^#/,''),m=/(?:^|&)save=([^&]*)/.exec(h),v=m?decodeURIComponent(m[1]):'',TK=(/(?:^|&)t=([A-Za-z0-9_\-.=%]{20,900})(?:&|$)/.exec(h)||[])[1]||'',TV=(/(?:^|&)via=(google|line)(?:&|$)/.exec(h)||[])[1]||'';if(h){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+if(RE.test(v)){s(K,v);s(L,'')}if(/(?:^|&)forget=1/.test(h)){s(K,'');s(L,'')}if(/(?:^|&)lo=1/.test(h))s(L,'1');if(/(?:^|&)resume=1/.test(h))s(L,'');
+if(/[?&]howto\b/.test(location.search)){location.replace('howto.html');return}
+var SA=false;try{SA=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches}catch(e){}
+function dk(){var d=g(K);return RE.test(d)?d:''}
+function rnd(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(x){return(x<16?'0':'')+x.toString(16)}).join('')}
+function pair(){var p=g(P);if(!PR.test(p)){try{p=rnd()}catch(e){return''}s(P,p)}return p}
+function frag(){var d=dk(),f=d?(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'nodk';var p=pair();if(p){f='app&'+(SA?'':'desk&')+'pair='+p+'&'+f;var n=+g(N)||0;if(n&&Date.now()-n<30*864e5)f+='&keepno'}return f}
+function url(){return u+'#'+frag()}
+function apply(j,keepP){if(!j||!j.ok)return;var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
+var busy=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||busy){cb&&cb();return}busy=1;var done=false,fin=function(j){if(done)return;done=true;busy=0;try{apply(j)}catch(e){}cb&&cb()};
+try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r){return r.json()}).then(fin,function(){fin(null)})}catch(e){fin(null)}setTimeout(function(){fin(null)},ms||4000)}
+// 快速啟動（2026-10-28）：已記住這支手機（有憑證、沒登出）→ 不再先等配對碼（以前每次最多等 2.5 秒）。
+// 產生一次性啟動碼 l，把「憑證＋配對碼＋l」用 POST 內容交給伺服器（不在網址），同時立刻前往 exec?lw=l；伺服器驗證完、平台直接顯示首頁。
+// 回覆（領回的記住／登出等）照舊存進 App；這次帶出去的配對碼繼續使用（不清掉），平台之後的記住／登出還是存在同一個配對碼。
+function br(){var ua=navigator.userAgent||'',ipad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);return SA?(ipad?'iPad App':'iPhone App'):''}
+function fast(){var d=dk();if(!d||g(L)||!window.fetch)return false;var l;try{l=rnd()}catch(e){return false}var f=frag(),p=g(P),ua=navigator.userAgent||'';
+// Safari／iPhone（WebKit）：POST 用 keepalive 送出後立刻換頁（實測 WebKit 可讀回覆）；其他瀏覽器（Chrome 的 keepalive 遇到轉址讀不到回覆）：等回覆再換頁，最多 6 秒
+var wk=/AppleWebKit/.test(ua)&&!/Chrome\/|Chromium|Edg\/|Firefox\/|Android/.test(ua),q;
+try{q=fetch(u,{method:'POST',body:JSON.stringify({op:'launch',l:l,dc:d,pair:PR.test(p)?p:'',br:br()}),headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',cache:'no-store',keepalive:wk}).then(function(r){return r.json()})}catch(e){return false}
+if(wk){q.then(function(j){try{apply(j,true)}catch(e){}},function(){});paint(function(){nav(u+'?lw='+l+'#'+f)});return true}
+var done=false,fin=function(j){if(done)return;done=true;try{apply(j,true)}catch(e){}if(j&&j['in']&&!g(L))nav(u+'?lw='+l+'#'+frag());else go()};
+q.then(fin,function(){fin(null)});setTimeout(function(){fin(null)},6000);return true}
+function paint(cb){var n=0,f=function(){if(!n++)cb()},r=function(){(window.requestAnimationFrame||setTimeout)(function(){setTimeout(f,0)})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',r);else r();setTimeout(f,300)}
+function go(){nav(url())}
+
+// 入口頁內嵌模式（2026-11-10 試作，未上線）：平台開在這頁的內嵌框裡，網址列停在入口頁，Google「這個應用程式是由 Google Apps Script 的使用者建立」灰色提示不會出現。
+// 安全：平台只在 ?fd=1 時允許被內嵌；雙方握手（只收平台內嵌框網域 FO 的訊息、只回給它），握手前平台畫面不給點。
+// 備援：12 秒內握手不成功（平台還沒更新、被瀏覽器擋、網路問題）→ 這個分頁改回原本的直接跳轉；網址加 ?direct=1 也一樣。
+// 緊急關閉：把下面 FON=true 改成 false（交接手冊「入口頁壞了怎麼辦」）。
+var FO='https://n-knehhjhmvjfdaj5bciu2uv3zrsc4xtm3pgkl3ny-0lu-script.googleusercontent.com',FON=true,KD='t';   // KD：入口代號（t＝測試入口 fdtest.html；伺服器只讓登入回到清單上的入口）
+function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k)||'';if(v)sessionStorage.setItem(k,v);else sessionStorage.removeItem(k)}catch(e){return''}}
+var FR=false;try{FR=FON&&window.top===window.self&&!/[?&]direct=1(?:&|$)/.test(location.search)&&!ss('tm_fd_off')&&/^https:\/\//.test(FO)}catch(e){FR=false}
+var fr=null,fok=false,wd=0;
+function addFd(x){var i=x.indexOf('#'),a=i<0?x:x.slice(0,i),b=i<0?'':x.slice(i);return a+(a.indexOf('?')<0?'?':'&')+'fd='+KD+b}
+function fallback(){ss('tm_fd_off','1');FR=false;fok=false;if(fr){fr.parentNode&&fr.parentNode.removeChild(fr);fr=null}location.replace(url())}
+function frame(x){if(!fr){fr=document.createElement('iframe');fr.id='app';fr.title='台大矯正同門會';fr.setAttribute('allow','clipboard-read; clipboard-write; web-share; fullscreen; geolocation; autoplay');
+  fr.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;border:0;z-index:10;opacity:0;background:#F3ECE2;transition:opacity .15s';document.body.appendChild(fr)}
+  fok=false;fr.style.opacity='0';clearTimeout(wd);wd=setTimeout(function(){if(!fok)fallback()},12000);fr.src=addFd(x)}
+function nav(x){if(!FR){location.replace(x);return}if(document.body)frame(x);else document.addEventListener('DOMContentLoaded',function(){frame(x)})}
+var QK=/^(t|via|lw|rs|ml|lc|bye|go|claimed|fd)$/;
+function okQ(q){q=String(q||'');return q.length<1200&&(!q||q.split('&').every(function(kv){return QK.test(kv.split('=')[0])}))}
+function entryHash(x){x=String(x||'');var mm=/(?:^|&)save=([^&]*)/.exec(x),vv=mm?decodeURIComponent(mm[1]):'';if(RE.test(vv)){s(K,vv);s(L,'')}if(/(?:^|&)forget=1/.test(x)){s(K,'');s(L,'')}if(/(?:^|&)lo=1/.test(x))s(L,'1');if(/(?:^|&)resume=1/.test(x))s(L,'')}
+window.addEventListener('message',function(e){if(!FR||!fr||e.origin!==FO||!e.data||typeof e.data!=='object')return;var d=e.data;
+  if(d.type==='tm-fd-hello'&&/^[0-9a-f]{32}$/.test(String(d.n||''))){fok=true;clearTimeout(wd);fr.style.opacity='1';try{e.source.postMessage({type:'tm-fd-ok',n:d.n,k:KD},e.origin)}catch(x){}return}
+  if(!fok)return;
+  if(d.type==='tm-nav'&&okQ(d.q)){var q=String(d.q||'').split('&').filter(function(kv){return kv&&kv.split('=')[0]!=='fd'}).join('&');ss('tm_fd_rs','');frame(u+(q?'?'+q:'')+'#'+frag());return}
+  if(d.type==='tm-entry'){entryHash(d.h);ss('tm_fd_rs','');start();return}
+  if(d.type==='tm-ping'){claim(null,4000);return}
+  if(d.type==='tm-loc'){ss('tm_fd_rs',/^[0-9a-f]{32}$/.test(String(d.rs||''))?String(d.rs):'');return}
+  if(d.type==='tm-title'&&typeof d.t==='string'){document.title=d.t.slice(0,80)||'同門會';return}
+});
+function isReload(){try{var n=performance.getEntriesByType('navigation')[0];return !!n&&n.type==='reload'}catch(e){return false}}
+window.__tmGo=go;
+// 電腦／一般瀏覽器（2026-10-28 比照手機 App）：也用配對碼自動記住；還沒記住（或登出過）時先領一次（最多 2.5 秒），有憑證就走快速啟動
+function start(){
+if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},2500);else if(!fast())go();return}
+// App 模式：有待領的配對碼時先領一次，再進平台；回到前景時也領（會員剛在平台按了「記住」）
+// 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
+if(!dk()||g(L))claim(go);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}}
+// Gate 登入後帶回來的入口憑證（#t=…）：親手登入＝恢復自動登入；內嵌模式開在框裡，否則照舊直接進平台
+if(TK){s(L,'');nav(u+'?t='+TK+(TV?'&via='+TV:'')+'#'+frag())}
+// 內嵌模式下按重新整理：用平台給的一次性續用碼回到平台（不必等快速啟動）
+else if(FR&&isReload()&&/^[0-9a-f]{32}$/.test(ss('tm_fd_rs'))){var rs0=ss('tm_fd_rs');ss('tm_fd_rs','');nav(u+'?rs='+rs0+'#'+frag())}
+else start();
+if(!SA)return;
+var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
+window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
+document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){e.preventDefault();go()})});
+})();</script>
+<noscript><meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec"></noscript>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F3ECE2;color:#241812;font-family:-apple-system,"PingFang TC","Noto Sans CJK TC","Microsoft JhengHei",sans-serif}.box{max-width:360px;padding:32px 24px;text-align:center}.ld{display:flex;flex-direction:column;align-items:center;gap:18px}.mk{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:#241812;box-shadow:inset 0 0 0 1px rgba(196,154,92,.55);overflow:hidden}.mk svg{width:100%;height:100%;display:block}.sp{width:28px;height:28px;border-radius:50%;border:3px solid #E2D2BC;border-top-color:#3B2A20;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.ld p{margin:0;color:#7D6B5C;font-size:14px}.more{opacity:0;transition:opacity .3s;pointer-events:none}.more.on{opacity:1;pointer-events:auto}.ico{width:120px;height:120px;border-radius:27px;box-shadow:0 6px 18px rgba(36,24,18,.25)}h1{font-size:22px;margin:18px 0 6px}p{color:#6B4A33;font-size:15px;line-height:1.6}.btn{display:inline-block;margin-top:14px;padding:12px 28px;border-radius:999px;background:#5B3A24;color:#F5EFE6;text-decoration:none;font-weight:700}ol{text-align:left;font-size:15px;line-height:1.7;padding-left:22px;margin:18px 0}li{margin-bottom:10px}small{color:#7D6B5C}</style></head><body><div class="box">
+<div class="ld" role="status" aria-live="polite"><div class="mk" aria-label="台大矯正同門會"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="M12.22 45.45 A13 20 0 1 1 35.78 45.45" fill="none" stroke="#C49A5C" stroke-width="1.2"></path><g transform="translate(11.44 42.18) rotate(-99.88)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(13.69 24.82) rotate(-63.49)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(24 17) rotate(0)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(34.31 24.82) rotate(63.49)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(36.56 42.18) rotate(99.88)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g></svg></div><div class="sp"></div><p id="st">正在載入會員資料…</p></div>
+<div class="more" id="more"><a class="btn" id="go" href="https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec">進入同門會</a>
+<p><small><a href="howto.html" style="color:#7D6B5C">如何加到手機桌面或電腦書籤？</a></small></p></div>
+<script>setTimeout(function(){var m=document.getElementById('more');if(m)m.className='more on'},5000)</script>
+</div></body></html>
