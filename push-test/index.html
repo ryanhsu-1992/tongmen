@@ -46,16 +46,19 @@ if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},7000);else if(!fast())g
 // 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
 // 2026-11-18 晚 2：第一次（這個 App 還沒有憑證）不再整頁前往平台登入——整頁去了就回不來（平台登入後留在 script.google.com，入口的邀請條、訂閱都不會執行）。
 // 改成停在這頁，按「登入同門會」用另開視窗（iOS 會跳出 Safari 視窗）登入；平台照舊用配對碼自動記住，這頁每 4 秒、以及切回 App 時自動領回憑證，接著顯示邀請條。
-var pollT=0,pollEnd=0;function linked(){if(pollT){clearInterval(pollT);pollT=0}var b=document.getElementById('go'),t=document.getElementById('st');if(b&&b.__first){b.__first=0;b.textContent='進入同門會';b.removeAttribute('target');b.removeAttribute('rel')}if(t)t.textContent='已登入並記住這支手機。下方出現圖示數字邀請時，請先按「開啟」，再按「進入同門會」。';try{window.__tmSync&&window.__tmSync()}catch(e){}}
+var pollT=0,pollEnd=0;function linked(){if(pollT){clearInterval(pollT);pollT=0}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',linked);return}var b=document.getElementById('go'),t=document.getElementById('st'),sp=document.querySelector('.ld .sp'),m=document.getElementById('more'),c=document.getElementById('cont');if(sp)sp.style.display='none';if(c)c.style.display='none';if(b){b.__first=0;b.textContent='進入同門會';b.removeAttribute('target');b.removeAttribute('rel')}if(t)t.textContent='✅ 已登入並記住這支手機。請看下方的步驟說明。';if(m)m.className='more on';try{window.__tmSync&&window.__tmSync()}catch(e){}}
 function poll(){if(pollT)return;pollEnd=Date.now()+15*60000;pollT=setInterval(function(){if(ok()){linked();return}if(Date.now()>pollEnd){clearInterval(pollT);pollT=0;return}if(document.visibilityState!=='hidden')claim(function(){if(ok())linked()},3500)},4000)}
-function first(){var sh=function(){var t=document.getElementById('st'),sp=document.querySelector('.ld .sp'),m=document.getElementById('more'),b=document.getElementById('go');if(sp)sp.style.display='none';if(t)t.innerHTML='第一次使用請先登入：按下方「登入同門會」，會跳出登入視窗。<br>登入完成後，按左上角「完成」或切回這個 App，這頁會自動接上。';if(b){b.__first=1;b.textContent='登入同門會';b.setAttribute('target','_blank');b.setAttribute('rel','noopener');b.href=url()}if(m)m.className='more on'};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sh);else sh()}
+function first(){var sh=function(){var t=document.getElementById('st'),sp=document.querySelector('.ld .sp'),m=document.getElementById('more'),b=document.getElementById('go');if(sp)sp.style.display='none';if(t)t.innerHTML='步驟 1：請按下方咖啡色的「登入同門會」，會跳出登入視窗。<br>看到同門會首頁以後，按左上角的「X」關掉那個視窗，回到這裡。';var c=document.getElementById('cont');if(c)c.style.display='';if(b){b.__first=1;b.textContent='登入同門會';b.setAttribute('target','_blank');b.setAttribute('rel','noopener');b.href=url()}if(m)m.className='more on'};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sh);else sh()}
 window.__tmFirst=function(){var b=document.getElementById('go');return!!(b&&b.__first)};
 function ok(){return!!(dk()&&!g(L))}
-if(!ok())claim(function(){if(!ok())first();else if(!fast())go()});else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
+// 2026-11-18 晚 3：測試 App 一律停在這頁，不自動進平台（以前「問伺服器最多 5 秒」，GAS 慢時逾時就整頁跳走，邀請條來不及出現）。進平台只靠按「進入同門會」。
+function show(){if(ok())linked();else first()}
+if(PR.test(g(P)))claim(show,10000);else show()
 var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){if(window.__tmFirst()){if(ok())linked();return}try{window.__tmSync&&window.__tmSync()}catch(e){}var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
 window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
-document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){if(b.__first){b.href=url();poll();return}e.preventDefault();go()})});
+document.addEventListener('DOMContentLoaded',function(){var c=document.getElementById('cont');if(c)c.addEventListener('click',function(e){e.preventDefault();var t=document.getElementById('st');if(ok()){linked();return}if(t)t.textContent='正在確認登入…';last=0;claim(function(){if(ok())linked();else if(t)t.innerHTML='還沒收到登入。請先按「登入同門會」，在跳出的視窗裡看到同門會首頁，按左上角「X」，再按一次「我登入好了，繼續」。'},10000)})});
+document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){if(b.__first){b.href=url();poll();return}e.preventDefault();if(!fast())go()})});
 })();</script>
 <noscript><meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec"></noscript>
 <style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F3ECE2;color:#241812;font-family:-apple-system,"PingFang TC","Noto Sans CJK TC","Microsoft JhengHei",sans-serif}.box{max-width:360px;padding:32px 24px;text-align:center}.ld{display:flex;flex-direction:column;align-items:center;gap:18px}.mk{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:#241812;box-shadow:inset 0 0 0 1px rgba(196,154,92,.55);overflow:hidden}.mk svg{width:100%;height:100%;display:block}.sp{width:28px;height:28px;border-radius:50%;border:3px solid #E2D2BC;border-top-color:#3B2A20;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.ld p{margin:0;color:#7D6B5C;font-size:14px}.more{opacity:0;transition:opacity .3s;pointer-events:none}.more.on{opacity:1;pointer-events:auto}.ico{width:120px;height:120px;border-radius:27px;box-shadow:0 6px 18px rgba(36,24,18,.25)}h1{font-size:22px;margin:18px 0 6px}p{color:#6B4A33;font-size:15px;line-height:1.6}.btn{display:inline-block;margin-top:14px;padding:12px 28px;border-radius:999px;background:#5B3A24;color:#F5EFE6;text-decoration:none;font-weight:700}ol{text-align:left;font-size:15px;line-height:1.7;padding-left:22px;margin:18px 0}li{margin-bottom:10px}small{color:#7D6B5C}</style><style>
@@ -72,7 +75,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
 .pd a{color:#7D6B5C}
 </style></head><body><div class="box">
 <div class="ld" role="status" aria-live="polite"><div class="mk" aria-label="台大矯正同門會"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="M12.22 45.45 A13 20 0 1 1 35.78 45.45" fill="none" stroke="#C49A5C" stroke-width="1.2"></path><g transform="translate(11.44 42.18) rotate(-99.88)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(13.69 24.82) rotate(-63.49)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(24 17) rotate(0)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(34.31 24.82) rotate(63.49)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(36.56 42.18) rotate(99.88)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g></svg></div><div class="sp"></div><p id="st">正在載入會員資料…</p></div>
-<div class="more" id="more"><a class="btn" id="go" href="https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec">進入同門會</a>
+<div class="more" id="more"><a class="btn" id="go" href="https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec">進入同門會</a><br><a class="btn" id="cont" href="#" style="display:none;background:#fff;color:#5B3A24;border:1px solid #5B3A24">我登入好了，繼續</a>
 <p><small><a href="../howto.html" style="color:#7D6B5C">如何加到手機桌面或電腦書籤？</a></small></p></div>
 <script>setTimeout(function(){var m=document.getElementById('more');if(m)m.className='more on'},5000)</script>
 <div class="bd-bar" id="bdBar" role="region" aria-label="圖示通知數字" style="display:none"><div class="bd-i"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></div><div><strong>要開啟圖示上的未讀數字嗎？</strong><p>有新公告時，主畫面圖示右上角會出現紅底白字的數字，也會跳出一則通知提醒您。之後可以在「我的資料」隨時關閉。</p><div class="bd-acts"><button type="button" class="p" id="bdYes">開啟</button><button type="button" id="bdLater">之後再說</button></div></div></div>
@@ -92,7 +95,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
   function el(i) { return document.getElementById(i); }
   var SUP = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   var BADGE = 'setAppBadge' in navigator;
-  function snoozed() { var t = +g(LATER) || 0; return t && Date.now() - t < 7 * 864e5; }
+  function snoozed() { var t = +g(LATER) || 0; return t && Date.now() - t < 10 * 60000; }   // 測試頁：「之後再說」只隱藏 10 分鐘
   // ---- 啟動時是否「先停在入口頁讓會員看到邀請」：只對已知開放的會員、尚未決定通知、沒按過「之後再說」 ----
   // 2026-11-18 晚修正：以前只有「上次已問過伺服器、知道有開放（tm_bd_ok=1）」才會停；但第一次領回憑證時還沒問過，入口一領到就換頁、問伺服器的請求被中斷 → 永遠記不到 tm_bd_ok、邀請條永遠不出現。
   // 現在：還不知道時先問伺服器（最多 5 秒），有開放、尚未決定通知 → 停在這頁顯示邀請條；沒開放 → 照常進入（12 小時內不再等）。
@@ -126,32 +129,48 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
     return reg.pushManager.subscribe(opt).catch(function () { return reg.pushManager.getSubscription().then(function (old) { return (old ? old.unsubscribe() : Promise.resolve()).then(function () { return reg.pushManager.subscribe(opt); }); }); });
   }
   var info = { perm: '-', sub: '-', srv: '-', n: '-' };
-  function diag() { var d = el('pdiag'); if (!d || !DIAG) return; d.style.display = ''; var pm = { granted: '已允許', denied: '已拒絕', default: '尚未決定' }[info.perm] || info.perm; d.textContent = '推播測試頁｜通知權限：' + pm + '｜這支手機已訂閱：' + info.sub + '｜伺服器：' + info.srv + '｜圖示數字：' + info.n + (BADGE ? '' : '（此裝置不支援圖示數字）'); }
+  function diag() {   // 2026-11-18 晚 3：白話的步驟說明（不含任何憑證或網址）
+    var d = el('pdiag'); if (!d || !DIAG) return; d.style.display = ''; d.style.fontSize = '14px'; d.style.textAlign = 'left'; d.style.color = '#3B2A20';
+    var L = [], perm = SUP ? Notification.permission : '';
+    L.push(dk() ? '步驟 1 登入：✅ 已登入' : '步驟 1 登入：⏳ 還沒登入（請按「登入同門會」）');
+    if (dk()) {
+      var k = info.k;
+      L.push(busy ? '步驟 2 伺服器：⏳ 正在確認…（伺服器有時要 10 秒以上，請稍等）' : k === 'ok' ? '步驟 2 伺服器：✅ 已開放給您' : k === 'no' ? '步驟 2 伺服器：❌ 這個帳號還沒開放這個功能' : k === 'off' ? '步驟 2 伺服器：❌ 「我的資料」裡的「圖示通知數字」是關的，請先打開' : k === 'err' ? '步驟 2 伺服器：❌ 這次沒連上，請按下方「重新檢查」' : '步驟 2 伺服器：⏳ 還沒確認');
+      if (!SUP) L.push('步驟 3 通知：❌ 這個畫面不能開通知（要從主畫面的「同門會測試」圖示打開，iPhone 要 iOS 16.4 以上）');
+      else if (perm === 'granted') L.push('步驟 3 通知：✅ 已允許');
+      else if (perm === 'denied') L.push('步驟 3 通知：❌ 之前按了「不允許」。請到 iPhone「設定」→「通知」→「同門會測試」→ 打開「允許通知」，再回來按「重新檢查」');
+      else L.push(k === 'ok' ? '步驟 3 通知：👉 請按上方的「開啟」，再按「允許」' : '步驟 3 通知：尚未決定');
+      L.push(info.sent === true ? '步驟 4 訂閱：✅ 完成！已送到伺服器（可以告訴管理叔叔了）' : info.sent === false ? '步驟 4 訂閱：❌ 送出失敗，請按「重新檢查」' : perm === 'granted' && k === 'ok' ? '步驟 4 訂閱：⏳ 正在送出…' : '步驟 4 訂閱：還沒');
+    }
+    d.innerHTML = L.map(function (x) { var e = document.createElement('div'); e.textContent = x; e.style.margin = '4px 0'; return e.outerHTML; }).join('') + '<div style="margin-top:8px"><a href="#" id="recheck" style="color:#5B3A24;font-weight:700">重新檢查</a></div>';
+    var rc = el('recheck'); if (rc) rc.onclick = function (e) { e.preventDefault(); st(LATER, ''); sync(true); diag(); };
+  }
   function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
   var busy = false, last = 0;
   var cur = null;
   function sync(force) {   // 回傳 Promise（進行中就回傳同一個），讓「按開啟」能等訂閱真的送到伺服器才換頁
     if (busy) return cur || Promise.resolve(); if (!dk()) return Promise.resolve(); if (!force && Date.now() - last < 2500) return Promise.resolve(); last = Date.now(); busy = true;
-    return (cur = run().catch(function () {}).then(function () { busy = false; cur = null; diag(); }));
+    info.k = ''; setTimeout(diag, 0); return (cur = run().catch(function () { info.k = 'err'; }).then(function () { busy = false; cur = null; diag(); }));
   }
   window.__tmSync = function () { sync(true); };   // 入口頁領回憑證後，立刻檢查推播狀態、顯示邀請條
   function run() {
     var reg = null, sub = null, id = '';
     info.perm = SUP ? Notification.permission : '不支援';
     var p0 = SUP ? navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (r) { reg = r; return navigator.serviceWorker.ready; }).then(function () { return reg.pushManager.getSubscription(); }).then(function (s) { sub = s; return s ? sid(s.endpoint) : ''; }).then(function (x) { id = x; }).catch(function () {}) : Promise.resolve();
+    p0 = Promise.race([p0, new Promise(function (r) { setTimeout(r, 8000); })]);   // service worker 卡住時不要一直等
     return p0.then(function () { info.sub = sub ? '是' : '否'; return post('pushstate', { id: id }); }).then(function (j) {
-      if (!j || !j.ok) { info.srv = '連不上'; return; }
-      if (!j.allowed) { info.srv = '尚未開放給這位會員'; st(OKK, ''); st(CHK, String(Date.now())); bar(false); return; }
+      if (!j || !j.ok) { info.srv = '連不上'; info.k = 'err'; return; }
+      if (!j.allowed) { info.k = 'no'; info.srv = '尚未開放給這位會員'; st(OKK, ''); st(CHK, String(Date.now())); bar(false); return; }
       if (!j.on) {
-        info.srv = '偏好已關閉'; st(OKK, ''); st(CHK, String(Date.now())); bar(false);
+        info.k = 'off'; info.srv = '偏好已關閉'; st(OKK, ''); st(CHK, String(Date.now())); bar(false);
         var jobs = [setBadge(0)]; if (sub) { var s0 = sub; jobs.push(s0.unsubscribe().catch(function () {})); }
         return Promise.all(jobs).then(function () { info.sub = '否'; info.n = '已清除'; if (BADGE && SUP) try { navigator.clearAppBadge(); } catch (e) {} });
       }
-      info.srv = '已開放、偏好開'; st(OKK, '1'); st(CHK, ''); info.perm = SUP ? Notification.permission : '不支援';
+      info.k = 'ok'; info.srv = '已開放、偏好開'; st(OKK, '1'); st(CHK, ''); info.perm = SUP ? Notification.permission : '不支援';
       if (SUP && Notification.permission === 'granted') {
         bar(false);
-        var need = reg && (!sub || !j.has), pr = Promise.resolve();
-        if (need) pr = subscribeNow(reg).then(function (s) { sub = s; info.sub = s ? '是' : '否'; return s ? post('pushsub', { sub: s.toJSON(), ua: ua() }) : null; });
+        var need = reg && (!sub || !j.has), pr = Promise.resolve(); if (!need && sub) info.sent = true;
+        if (need) pr = subscribeNow(reg).then(function (s) { sub = s; info.sub = s ? '是' : '否'; return s ? post('pushsub', { sub: s.toJSON(), ua: ua() }).then(function (r) { info.sent = !!(r && r.ok); }, function () { info.sent = false; }) : (info.sent = false, null); }).catch(function () { info.sent = false; });
         return pr.then(function () { info.n = String(j.n || 0); return setBadge(j.n || 0); });
       }
       if (SUP && Notification.permission === 'default') { if (!snoozed()) bar(true); else bar(false); }
