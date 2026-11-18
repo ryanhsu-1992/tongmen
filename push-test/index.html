@@ -147,6 +147,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
       else L.push(k === 'ok' ? '步驟 3 通知：👉 請按上方的「開啟」，再按「允許」' : '步驟 3 通知：尚未決定');
       L.push(info.sent === true ? '步驟 4 訂閱：✅ 完成！已送到伺服器（可以告訴管理叔叔了）' : info.sent === false ? '步驟 4 訂閱：❌ 送出失敗，請按「重新檢查」' : perm === 'granted' && k === 'ok' ? '步驟 4 訂閱：⏳ 正在送出…' : '步驟 4 訂閱：還沒');
     }
+    if (dk() && info.k === 'ok' && /^\d+$/.test(String(info.n))) L.push('圖示數字：您目前有 ' + info.n + ' 則未讀公告' + (info.n === '0' ? '（0 則時圖示上不會有紅色數字，這是正常的；自己發的公告不算未讀）' : '（圖示右上角應顯示 ' + info.n + '）') + (BADGE ? '' : '｜這支手機不支援圖示數字'));
     d.innerHTML = L.map(function (x) { var e = document.createElement('div'); e.textContent = x; e.style.margin = '4px 0'; return e.outerHTML; }).join('') + '<div style="margin-top:8px"><a href="#" id="recheck" style="color:#5B3A24;font-weight:700">重新檢查</a></div>';
     var rc = el('recheck'); if (rc) rc.onclick = function (e) { e.preventDefault(); st(LATER, ''); busy = false; cur = null; sync(true); diag(); };
   }
