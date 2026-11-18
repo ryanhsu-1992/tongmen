@@ -18,8 +18,10 @@ function pair(){var p=g(P);if(!PR.test(p)){try{p=rnd()}catch(e){return''}s(P,p)}
 function frag(){var d=dk(),f=d?(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'nodk';var p=pair();if(p)f='app&'+(SA?'':'desk&')+'pair='+p+'&'+f;var n=+g(N)||0;if(n&&Date.now()-n<30*864e5)f+='&keepno';return f}
 function url(){return u+'#'+frag()}
 function apply(j,keepP){if(!j||!j.ok)return;var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');s(N,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
-var busy=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||busy){cb&&cb();return}busy=1;var done=false,fin=function(j){if(done)return;done=true;busy=0;try{apply(j)}catch(e){}cb&&cb()};
-try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r){return r.json()}).then(fin,function(){fin(null)})}catch(e){fin(null)}setTimeout(function(){fin(null)},ms||4000)}
+// 2026-11-18 晚 4：領回是「一次性」的（伺服器交出憑證後就刪掉）。以前等太久（2.5～4 秒）就放棄、之後才到的回覆直接丟掉 → 伺服器已交出、這頁卻沒存到，永遠「還沒收到登入」。
+// 現在：不管多晚到，回覆一律存下；逾時只是先讓畫面繼續，晚到時再通知（__tmLate）。同一時間只送一個領回請求（最多 40 秒視為失敗）。
+var busy=0,busyT=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||(busy&&Date.now()-busyT<40000)){cb&&cb();return}busy=1;busyT=Date.now();var done=false,fin=function(){if(done)return;done=true;cb&&cb()};
+try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r){return r.json()}).then(function(j){busy=0;try{apply(j)}catch(e){}if(done){try{window.__tmLate&&window.__tmLate()}catch(e){}}else fin()},function(){busy=0;fin()})}catch(e){busy=0;fin()}setTimeout(fin,ms||4000)}
 // 快速啟動（2026-10-28）：已記住這支手機（有憑證、沒登出）→ 不再先等配對碼（以前每次最多等 2.5 秒）。
 // 產生一次性啟動碼 l，把「憑證＋配對碼＋l」用 POST 內容交給伺服器（不在網址），同時立刻前往 exec?lw=l；伺服器驗證完、平台直接顯示首頁。
 // 回覆（領回的記住／登出等）照舊存進 App；這次帶出去的配對碼繼續使用（不清掉），平台之後的記住／登出還是存在同一個配對碼。
@@ -49,6 +51,7 @@ if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},7000);else if(!fast())g
 var pollT=0,pollEnd=0;function linked(){if(pollT){clearInterval(pollT);pollT=0}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',linked);return}var b=document.getElementById('go'),t=document.getElementById('st'),sp=document.querySelector('.ld .sp'),m=document.getElementById('more'),c=document.getElementById('cont');if(sp)sp.style.display='none';if(c)c.style.display='none';if(b){b.__first=0;b.textContent='進入同門會';b.removeAttribute('target');b.removeAttribute('rel')}if(t)t.textContent='✅ 已登入並記住這支手機。請看下方的步驟說明。';if(m)m.className='more on';try{window.__tmSync&&window.__tmSync()}catch(e){}}
 function poll(){if(pollT)return;pollEnd=Date.now()+15*60000;pollT=setInterval(function(){if(ok()){linked();return}if(Date.now()>pollEnd){clearInterval(pollT);pollT=0;return}if(document.visibilityState!=='hidden')claim(function(){if(ok())linked()},3500)},4000)}
 function first(){var sh=function(){var t=document.getElementById('st'),sp=document.querySelector('.ld .sp'),m=document.getElementById('more'),b=document.getElementById('go');if(sp)sp.style.display='none';if(t)t.innerHTML='步驟 1：請按下方咖啡色的「登入同門會」，會跳出登入視窗。<br>看到同門會首頁以後，按左上角的「X」關掉那個視窗，回到這裡。';var c=document.getElementById('cont');if(c)c.style.display='';if(b){b.__first=1;b.textContent='登入同門會';b.setAttribute('target','_blank');b.setAttribute('rel','noopener');b.href=url()}if(m)m.className='more on'};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sh);else sh()}
+window.__tmLate=function(){if(window.__tmFirst&&window.__tmFirst()){if(ok())linked()}else{try{window.__tmSync&&window.__tmSync()}catch(e){}}};
 window.__tmFirst=function(){var b=document.getElementById('go');return!!(b&&b.__first)};
 function ok(){return!!(dk()&&!g(L))}
 // 2026-11-18 晚 3：測試 App 一律停在這頁，不自動進平台（以前「問伺服器最多 5 秒」，GAS 慢時逾時就整頁跳走，邀請條來不及出現）。進平台只靠按「進入同門會」。
@@ -57,7 +60,7 @@ if(PR.test(g(P)))claim(show,10000);else show()
 var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){if(window.__tmFirst()){if(ok())linked();return}try{window.__tmSync&&window.__tmSync()}catch(e){}var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
 window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
-document.addEventListener('DOMContentLoaded',function(){var c=document.getElementById('cont');if(c)c.addEventListener('click',function(e){e.preventDefault();var t=document.getElementById('st');if(ok()){linked();return}if(t)t.textContent='正在確認登入…';last=0;claim(function(){if(ok())linked();else if(t)t.innerHTML='還沒收到登入。請先按「登入同門會」，在跳出的視窗裡看到同門會首頁，按左上角「X」，再按一次「我登入好了，繼續」。'},10000)})});
+document.addEventListener('DOMContentLoaded',function(){var c=document.getElementById('cont');if(c)c.addEventListener('click',function(e){e.preventDefault();var t=document.getElementById('st');if(ok()){linked();return}if(t)t.textContent='正在確認登入…';last=0;claim(function(){if(ok())linked();else if(busy&&t)t.textContent='伺服器有點慢，正在等登入結果…（最多約 30 秒，好了會自動繼續）';else if(t)t.innerHTML='還沒收到登入。請先按「登入同門會」，在跳出的視窗裡看到同門會首頁，按左上角「X」，再按一次「我登入好了，繼續」。'},10000)})});
 document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){if(b.__first){b.href=url();poll();return}e.preventDefault();if(!fast())go()})});
 })();</script>
 <noscript><meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec"></noscript>
@@ -117,7 +120,9 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
   if (!SA) return;
   function post(op, x) {
     var o = { op: op, dc: dk() }; for (var k in x) o[k] = x[k];
-    return fetch(U, { method: 'POST', body: JSON.stringify(o), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.json(); });
+    var ac = null; try { ac = new AbortController(); } catch (e) {}
+    var f = fetch(U, { method: 'POST', body: JSON.stringify(o), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store', signal: ac ? ac.signal : undefined }).then(function (r) { return r.json(); });
+    return Promise.race([f, new Promise(function (_, no) { setTimeout(function () { try { ac && ac.abort(); } catch (e) {} no(new Error('timeout')); }, 25000); })]);   // 伺服器 25 秒沒回就當失敗（不再永遠卡在步驟 2）
   }
   function hex(b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return (x < 16 ? '0' : '') + x.toString(16); }).join(''); }
   function sid(ep) { return crypto.subtle.digest('SHA-256', new TextEncoder().encode('pushsub|' + ep)).then(function (b) { return hex(b).slice(0, 32); }); }
@@ -143,7 +148,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
       L.push(info.sent === true ? '步驟 4 訂閱：✅ 完成！已送到伺服器（可以告訴管理叔叔了）' : info.sent === false ? '步驟 4 訂閱：❌ 送出失敗，請按「重新檢查」' : perm === 'granted' && k === 'ok' ? '步驟 4 訂閱：⏳ 正在送出…' : '步驟 4 訂閱：還沒');
     }
     d.innerHTML = L.map(function (x) { var e = document.createElement('div'); e.textContent = x; e.style.margin = '4px 0'; return e.outerHTML; }).join('') + '<div style="margin-top:8px"><a href="#" id="recheck" style="color:#5B3A24;font-weight:700">重新檢查</a></div>';
-    var rc = el('recheck'); if (rc) rc.onclick = function (e) { e.preventDefault(); st(LATER, ''); sync(true); diag(); };
+    var rc = el('recheck'); if (rc) rc.onclick = function (e) { e.preventDefault(); st(LATER, ''); busy = false; cur = null; sync(true); diag(); };
   }
   function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
   var busy = false, last = 0;
@@ -159,7 +164,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
     var p0 = SUP ? navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (r) { reg = r; return navigator.serviceWorker.ready; }).then(function () { return reg.pushManager.getSubscription(); }).then(function (s) { sub = s; return s ? sid(s.endpoint) : ''; }).then(function (x) { id = x; }).catch(function () {}) : Promise.resolve();
     p0 = Promise.race([p0, new Promise(function (r) { setTimeout(r, 8000); })]);   // service worker 卡住時不要一直等
     return p0.then(function () { info.sub = sub ? '是' : '否'; return post('pushstate', { id: id }); }).then(function (j) {
-      if (!j || !j.ok) { info.srv = '連不上'; info.k = 'err'; return; }
+      if (!j || !j.ok) { info.srv = '連不上'; info.k = 'err'; if (SUP && Notification.permission === 'default') bar(true); else if (SUP && Notification.permission === 'granted') return subDirect(); return; }
       if (!j.allowed) { info.k = 'no'; info.srv = '尚未開放給這位會員'; st(OKK, ''); st(CHK, String(Date.now())); bar(false); return; }
       if (!j.on) {
         info.k = 'off'; info.srv = '偏好已關閉'; st(OKK, ''); st(CHK, String(Date.now())); bar(false);
@@ -177,11 +182,18 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
       else bar(false);
     });
   }
+  // 伺服器確認失敗時的備案：直接訂閱並送出，由送出的結果當作確認（伺服器那邊照樣驗證憑證與名單）
+  function subDirect() {
+    return navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (r) { return navigator.serviceWorker.ready.then(function () { return r; }); })
+      .then(function (reg) { return subscribeNow(reg); }).then(function (s) { info.sub = s ? '是' : '否'; return s ? post('pushsub', { sub: s.toJSON(), ua: ua() }) : null; })
+      .then(function (r) { info.sent = !!(r && r.ok); if (r && r.ok) info.k = 'ok'; else if (r && r.allowed === false) info.k = 'no'; else if (r && r.on === false) info.k = 'off'; }, function () { info.sent = false; })
+      .then(diag);
+  }
   function enable() {   // 使用者按「開啟」（點擊手勢內才能詢問通知權限）
     if (!SUP) { bar(false, '這個瀏覽器不支援圖示通知。'); release(); return; }
     var p; try { p = Notification.requestPermission(); } catch (e) { p = Promise.resolve('denied'); }
     Promise.resolve(p).then(function (perm) {
-      if (perm === 'granted') { bar(false, '已開啟，正在完成設定…'); var ok = false, go2 = function () { if (ok) return; ok = true; bar(false, '已開啟。'); setTimeout(release, 400); }; (cur || Promise.resolve()).then(function () { return sync(true); }).then(go2, go2); setTimeout(go2, 12000); }   // 以前 0.6 秒就換頁，訂閱還沒送到伺服器就被中斷
+      if (perm === 'granted') { bar(false, '已開啟，正在完成設定…'); var ok = false, go2 = function () { if (ok) return; ok = true; bar(false, '已開啟。'); setTimeout(release, 400); }; (cur || Promise.resolve()).then(function () { return sync(true); }).then(function () { if (info.sent !== true) return subDirect(); }).then(go2, go2); setTimeout(go2, 60000); }   // 以前 0.6 秒就換頁，訂閱還沒送到伺服器就被中斷
       else { bar(false, '沒有開啟也沒關係，之後想開再到「我的資料」或手機設定。'); st(LATER, String(Date.now())); release(); }
     });
   }
