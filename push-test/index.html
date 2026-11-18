@@ -44,11 +44,18 @@ if(!SA&&ios()){document.addEventListener('DOMContentLoaded',function(){var t=doc
 if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},7000);else if(!fast())go();return}
 // App 模式：有待領的配對碼時先領一次，再進平台；回到前景時也領（會員剛在平台按了「記住」）
 // 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
-if(!dk()||g(L))claim(go);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
-var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){try{window.__tmSync&&window.__tmSync()}catch(e){}var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
+// 2026-11-18 晚 2：第一次（這個 App 還沒有憑證）不再整頁前往平台登入——整頁去了就回不來（平台登入後留在 script.google.com，入口的邀請條、訂閱都不會執行）。
+// 改成停在這頁，按「登入同門會」用另開視窗（iOS 會跳出 Safari 視窗）登入；平台照舊用配對碼自動記住，這頁每 4 秒、以及切回 App 時自動領回憑證，接著顯示邀請條。
+var pollT=0,pollEnd=0;function linked(){if(pollT){clearInterval(pollT);pollT=0}var b=document.getElementById('go'),t=document.getElementById('st');if(b&&b.__first){b.__first=0;b.textContent='進入同門會';b.removeAttribute('target');b.removeAttribute('rel')}if(t)t.textContent='已登入並記住這支手機。下方出現圖示數字邀請時，請先按「開啟」，再按「進入同門會」。';try{window.__tmSync&&window.__tmSync()}catch(e){}}
+function poll(){if(pollT)return;pollEnd=Date.now()+15*60000;pollT=setInterval(function(){if(ok()){linked();return}if(Date.now()>pollEnd){clearInterval(pollT);pollT=0;return}if(document.visibilityState!=='hidden')claim(function(){if(ok())linked()},3500)},4000)}
+function first(){var sh=function(){var t=document.getElementById('st'),sp=document.querySelector('.ld .sp'),m=document.getElementById('more'),b=document.getElementById('go');if(sp)sp.style.display='none';if(t)t.innerHTML='第一次使用請先登入：按下方「登入同門會」，會跳出登入視窗。<br>登入完成後，按左上角「完成」或切回這個 App，這頁會自動接上。';if(b){b.__first=1;b.textContent='登入同門會';b.setAttribute('target','_blank');b.setAttribute('rel','noopener');b.href=url()}if(m)m.className='more on'};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sh);else sh()}
+window.__tmFirst=function(){var b=document.getElementById('go');return!!(b&&b.__first)};
+function ok(){return!!(dk()&&!g(L))}
+if(!ok())claim(function(){if(!ok())first();else if(!fast())go()});else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
+var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){if(window.__tmFirst()){if(ok())linked();return}try{window.__tmSync&&window.__tmSync()}catch(e){}var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
 window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
-document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){e.preventDefault();go()})});
+document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){if(b.__first){b.href=url();poll();return}e.preventDefault();go()})});
 })();</script>
 <noscript><meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec"></noscript>
 <style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F3ECE2;color:#241812;font-family:-apple-system,"PingFang TC","Noto Sans CJK TC","Microsoft JhengHei",sans-serif}.box{max-width:360px;padding:32px 24px;text-align:center}.ld{display:flex;flex-direction:column;align-items:center;gap:18px}.mk{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:#241812;box-shadow:inset 0 0 0 1px rgba(196,154,92,.55);overflow:hidden}.mk svg{width:100%;height:100%;display:block}.sp{width:28px;height:28px;border-radius:50%;border:3px solid #E2D2BC;border-top-color:#3B2A20;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.ld p{margin:0;color:#7D6B5C;font-size:14px}.more{opacity:0;transition:opacity .3s;pointer-events:none}.more.on{opacity:1;pointer-events:auto}.ico{width:120px;height:120px;border-radius:27px;box-shadow:0 6px 18px rgba(36,24,18,.25)}h1{font-size:22px;margin:18px 0 6px}p{color:#6B4A33;font-size:15px;line-height:1.6}.btn{display:inline-block;margin-top:14px;padding:12px 28px;border-radius:999px;background:#5B3A24;color:#F5EFE6;text-decoration:none;font-weight:700}ol{text-align:left;font-size:15px;line-height:1.7;padding-left:22px;margin:18px 0}li{margin-bottom:10px}small{color:#7D6B5C}</style><style>
@@ -103,7 +110,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
   };
   function release() { window.__tmReleased = true; if (window.__tmHeld) { var x = window.__tmHeld; window.__tmHeld = null; if (Date.now() - heldAt > 90000 && window.__tmGo) window.__tmGo(); else __tmTo(x); } }   // 停太久（啟動碼 2 分鐘失效）→ 改用憑證重新進入
   window.__tmRelease = release;
-  document.addEventListener('click', function (e) { var t = e.target; if (t && t.closest && t.closest('#go')) window.__tmReleased = true; }, true);
+  document.addEventListener('click', function (e) { var t = e.target; if (t && t.closest && t.closest('#go') && !(window.__tmFirst && window.__tmFirst())) window.__tmReleased = true; }, true);
   if (!SA) return;
   function post(op, x) {
     var o = { op: op, dc: dk() }; for (var k in x) o[k] = x[k];
