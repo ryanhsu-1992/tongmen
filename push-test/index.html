@@ -3,7 +3,9 @@
 <script>/* 記住這支手機（2026-10-27）：iPhone Safari 會清掉 Apps Script 內嵌框的儲存空間，所以裝置憑證改存在這個入口網站（第一方），每次打開時用網址 #dk=… 交給平台（# 後面的內容不會送到任何伺服器；平台讀到後立刻從網址列移除）。
    主畫面 App（2026-10-27 晚）：iOS 26 起「加入主畫面」一律是獨立 App，平台（script.google.com）會在 App 內的 Safari 視窗開啟，那裡的儲存空間跟 App 不同；
    所以 App 模式改用一次性配對碼（#app&pair=…）：會員在平台按「記住這支手機」後，這頁回到前景或下次打開時，自己向伺服器領回憑證，存在 App 裡（只領一次）。 */
-function __nav(x){if(window.__tmHold&&window.__tmHold()){window.__tmHeld=x;return}location.replace(x)}
+/* 2026-11-18 晚：所有前往平台的換頁都經過 __nav → 推播區塊的 __tmGate（決定要不要先停在這頁顯示邀請條）。主畫面 App 內改用 assign（保留上一頁，平台左下「<」可回到這頁）。 */
+function __tmTo(x){var sa=false;try{sa=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches}catch(e){}if(!sa){location.replace(x);return}if(document.readyState!=='complete'){window.addEventListener('load',function(){setTimeout(function(){location.assign(x)},0)});return}location.assign(x)}   // 頁面還沒載完就換頁，瀏覽器會當成「取代」不留上一頁，所以等載完
+function __nav(x){if(window.__tmGate){window.__tmGate(x);return}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){__nav(x)});return}__tmTo(x)}
 (function(){var u='https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec',K='tm_dk',L='tm_dk_lo',P='tm_pair',N='tm_keep_no',RE=/^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/,PR=/^[0-9a-f]{32}$/;
 function g(k){try{return localStorage.getItem(k)||''}catch(e){return''}}function s(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}
 var h=location.hash.replace(/^#/,''),m=/(?:^|&)save=([^&]*)/.exec(h),v=m?decodeURIComponent(m[1]):'';if(h){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
@@ -76,7 +78,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
 (function () {
   var VK = 'BNAenwWAuyeefdBjPpA6qhZiSln3Nbr5UPaaDTqaTVm_UvpXzHE5Vv9HDTV-cTOf7K0k2KcP3duDhZBBOoR9Ozs', U = 'https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec', DIAG = true;
   var SA = false; try { SA = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches; } catch (e) {}
-  var RE = /^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/, LATER = 'tm_bd_later', OKK = 'tm_bd_ok';
+  var RE = /^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/, LATER = 'tm_bd_later', OKK = 'tm_bd_ok', CHK = 'tm_bd_chk';
   function g(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
   function st(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
   function dk() { var d = g('tm_dk'); return RE.test(d) ? d : ''; }
@@ -85,8 +87,21 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
   var BADGE = 'setAppBadge' in navigator;
   function snoozed() { var t = +g(LATER) || 0; return t && Date.now() - t < 7 * 864e5; }
   // ---- 啟動時是否「先停在入口頁讓會員看到邀請」：只對已知開放的會員、尚未決定通知、沒按過「之後再說」 ----
-  window.__tmHold = function () { return !!(SA && SUP && !window.__tmReleased && Notification.permission === 'default' && dk() && g(OKK) === '1' && !snoozed()); };
-  function release() { window.__tmReleased = true; if (window.__tmHeld) { var x = window.__tmHeld; window.__tmHeld = null; location.replace(x); } }
+  // 2026-11-18 晚修正：以前只有「上次已問過伺服器、知道有開放（tm_bd_ok=1）」才會停；但第一次領回憑證時還沒問過，入口一領到就換頁、問伺服器的請求被中斷 → 永遠記不到 tm_bd_ok、邀請條永遠不出現。
+  // 現在：還不知道時先問伺服器（最多 5 秒），有開放、尚未決定通知 → 停在這頁顯示邀請條；沒開放 → 照常進入（12 小時內不再等）。
+  function cand() { return !!(SA && SUP && !window.__tmReleased && Notification.permission === 'default' && dk() && !snoozed()); }
+  window.__tmHold = function () { return cand() && g(OKK) === '1'; };
+  var heldAt = 0;
+  function hold(x) { window.__tmHeld = x; heldAt = Date.now(); var m = el('more'); if (m) m.className = 'more on'; var t = el('st'); if (t) t.textContent = '先決定要不要開啟圖示數字，再按下方按鈕進入會員平台。'; bar(true); }
+  window.__tmGate = function (x) {
+    if (!cand()) { __tmTo(x); return; }
+    if (g(OKK) === '1') { hold(x); return; }
+    var c = +g(CHK) || 0; if (c && Date.now() - c < 12 * 36e5) { __tmTo(x); return; }
+    var t = el('st'); if (t) t.textContent = '正在確認圖示通知設定…';
+    var done = false, fin = function () { if (done) return; done = true; if (cand() && g(OKK) === '1') hold(x); else __tmTo(x); };
+    sync(true).then(fin, fin); setTimeout(fin, 5000);
+  };
+  function release() { window.__tmReleased = true; if (window.__tmHeld) { var x = window.__tmHeld; window.__tmHeld = null; if (Date.now() - heldAt > 90000 && window.__tmGo) window.__tmGo(); else __tmTo(x); } }   // 停太久（啟動碼 2 分鐘失效）→ 改用憑證重新進入
   window.__tmRelease = release;
   document.addEventListener('click', function (e) { var t = e.target; if (t && t.closest && t.closest('#go')) window.__tmReleased = true; }, true);
   if (!SA) return;
@@ -107,9 +122,10 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
   function diag() { var d = el('pdiag'); if (!d || !DIAG) return; d.style.display = ''; var pm = { granted: '已允許', denied: '已拒絕', default: '尚未決定' }[info.perm] || info.perm; d.textContent = '推播測試頁｜通知權限：' + pm + '｜這支手機已訂閱：' + info.sub + '｜伺服器：' + info.srv + '｜圖示數字：' + info.n + (BADGE ? '' : '（此裝置不支援圖示數字）'); }
   function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
   var busy = false, last = 0;
-  function sync(force) {
-    if (busy || !dk()) return; if (!force && Date.now() - last < 2500) return; last = Date.now(); busy = true;
-    run().catch(function () {}).then(function () { busy = false; diag(); });
+  var cur = null;
+  function sync(force) {   // 回傳 Promise（進行中就回傳同一個），讓「按開啟」能等訂閱真的送到伺服器才換頁
+    if (busy) return cur || Promise.resolve(); if (!dk()) return Promise.resolve(); if (!force && Date.now() - last < 2500) return Promise.resolve(); last = Date.now(); busy = true;
+    return (cur = run().catch(function () {}).then(function () { busy = false; cur = null; diag(); }));
   }
   window.__tmSync = function () { sync(true); };   // 入口頁領回憑證後，立刻檢查推播狀態、顯示邀請條
   function run() {
@@ -118,13 +134,13 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
     var p0 = SUP ? navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (r) { reg = r; return navigator.serviceWorker.ready; }).then(function () { return reg.pushManager.getSubscription(); }).then(function (s) { sub = s; return s ? sid(s.endpoint) : ''; }).then(function (x) { id = x; }).catch(function () {}) : Promise.resolve();
     return p0.then(function () { info.sub = sub ? '是' : '否'; return post('pushstate', { id: id }); }).then(function (j) {
       if (!j || !j.ok) { info.srv = '連不上'; return; }
-      if (!j.allowed) { info.srv = '尚未開放給這位會員'; st(OKK, ''); bar(false); return; }
+      if (!j.allowed) { info.srv = '尚未開放給這位會員'; st(OKK, ''); st(CHK, String(Date.now())); bar(false); return; }
       if (!j.on) {
-        info.srv = '偏好已關閉'; st(OKK, ''); bar(false);
+        info.srv = '偏好已關閉'; st(OKK, ''); st(CHK, String(Date.now())); bar(false);
         var jobs = [setBadge(0)]; if (sub) { var s0 = sub; jobs.push(s0.unsubscribe().catch(function () {})); }
         return Promise.all(jobs).then(function () { info.sub = '否'; info.n = '已清除'; if (BADGE && SUP) try { navigator.clearAppBadge(); } catch (e) {} });
       }
-      info.srv = '已開放、偏好開'; st(OKK, '1'); info.perm = SUP ? Notification.permission : '不支援';
+      info.srv = '已開放、偏好開'; st(OKK, '1'); st(CHK, ''); info.perm = SUP ? Notification.permission : '不支援';
       if (SUP && Notification.permission === 'granted') {
         bar(false);
         var need = reg && (!sub || !j.has), pr = Promise.resolve();
@@ -139,7 +155,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
     if (!SUP) { bar(false, '這個瀏覽器不支援圖示通知。'); release(); return; }
     var p; try { p = Notification.requestPermission(); } catch (e) { p = Promise.resolve('denied'); }
     Promise.resolve(p).then(function (perm) {
-      if (perm === 'granted') { bar(false, '已開啟。'); sync(true); setTimeout(release, 600); }
+      if (perm === 'granted') { bar(false, '已開啟，正在完成設定…'); var ok = false, go2 = function () { if (ok) return; ok = true; bar(false, '已開啟。'); setTimeout(release, 400); }; (cur || Promise.resolve()).then(function () { return sync(true); }).then(go2, go2); setTimeout(go2, 12000); }   // 以前 0.6 秒就換頁，訂閱還沒送到伺服器就被中斷
       else { bar(false, '沒有開啟也沒關係，之後想開再到「我的資料」或手機設定。'); st(LATER, String(Date.now())); release(); }
     });
   }
