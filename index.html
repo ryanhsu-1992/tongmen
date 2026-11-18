@@ -15,8 +15,10 @@ function pair(){var p=g(P);if(!PR.test(p)){try{p=rnd()}catch(e){return''}s(P,p)}
 function frag(){var d=dk(),f=d?(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'nodk';var p=pair();if(p)f='app&'+(SA?'':'desk&')+'pair='+p+'&'+f;var n=+g(N)||0;if(n&&Date.now()-n<30*864e5)f+='&keepno';return f}
 function url(){return u+'#'+frag()}
 function apply(j,keepP){if(!j||!j.ok)return;var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');s(N,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
-var busy=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||busy){cb&&cb();return}busy=1;var done=false,fin=function(j){if(done)return;done=true;busy=0;try{apply(j)}catch(e){}cb&&cb()};
-try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r){return r.json()}).then(fin,function(){fin(null)})}catch(e){fin(null)}setTimeout(function(){fin(null)},ms||4000)}
+// 2026-11-18（H Ryan 核准 t656u）：領回是一次性的（伺服器交出就刪掉），伺服器常要 3～6 秒。以前逾時就把晚到的回覆丟掉 → 「記住這支手機」遺失。
+// 現在：回覆不管多晚到都存下（逾時只是先讓畫面繼續）；同一時間只送一個領回（最多 40 秒視為失敗）；App 等待改為最多 10 秒（電腦維持 7 秒）。
+var busy=0,busyT=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||(busy&&Date.now()-busyT<40000)){cb&&cb();return}busy=1;busyT=Date.now();var done=false,fin=function(){if(done)return;done=true;cb&&cb()};
+try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r){return r.json()}).then(function(j){busy=0;try{apply(j)}catch(e){}if(done&&dk()&&!g(L)){var t=document.getElementById('st');if(t)t.textContent='已記住這支手機。點下方按鈕進入會員平台。'}else fin()},function(){busy=0;fin()})}catch(e){busy=0;fin()}setTimeout(fin,ms||10000)}
 // 快速啟動（2026-10-28）：已記住這支手機（有憑證、沒登出）→ 不再先等配對碼（以前每次最多等 2.5 秒）。
 // 產生一次性啟動碼 l，把「憑證＋配對碼＋l」用 POST 內容交給伺服器（不在網址），同時立刻前往 exec?lw=l；伺服器驗證完、平台直接顯示首頁。
 // 回覆（領回的記住／登出等）照舊存進 App；這次帶出去的配對碼繼續使用（不清掉），平台之後的記住／登出還是存在同一個配對碼。
@@ -36,7 +38,7 @@ window.__tmGo=go;
 if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},7000);else if(!fast())go();return}
 // App 模式：有待領的配對碼時先領一次，再進平台；回到前景時也領（會員剛在平台按了「記住」）
 // 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
-if(!dk()||g(L))claim(go);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
+if(!dk()||g(L))claim(go,10000);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
 var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
 window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
