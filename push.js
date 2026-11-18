@@ -6,7 +6,7 @@
   var VK = 'BNAenwWAuyeefdBjPpA6qhZiSln3Nbr5UPaaDTqaTVm_UvpXzHE5Vv9HDTV-cTOf7K0k2KcP3duDhZBBOoR9Ozs';
   var SA = false; try { SA = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches; } catch (e) {}
   var SUP = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window, BADGE = 'setAppBadge' in navigator;
-  var RE = /^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/, LATER = 'tm_bd_later', OKK = 'tm_bd_ok', SUBK = 'tm_bd_sub', CHK = 'tm_bd_chk';
+  var RE = /^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/, LATER = 'tm_bd_later', OKK = 'tm_bd_ok', SUBK = 'tm_bd_sub', CHK = 'tm_bd_chk2';   // 11/19：換新鍵名，舊版逾時留下的「1 天內不再等」記號一律作廢
   function g(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
   function st(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
   function dk() { var d = g('tm_dk'); return RE.test(d) ? d : ''; }
@@ -21,9 +21,11 @@
   window.__tmHold = function () {
     if (!cand()) return false;
     if (g(OKK) === '1') { show(); return true; }
-    if (unknown()) { if (!pending) { pending = true; setTimeout(function () { if (pending) { pending = false; release(); } }, 6000); } return true; }   // 逾時：下次打開再等（11/19：不再擋一天）
+    if (unknown()) { if (!pending) { pending = true; ask(); setTimeout(function () { if (pending) { pending = false; release(); } }, 8000); } return true; }   // 逾時：下次打開再等（11/19：不再擋一天）
     return false;
   };
+  // 11/19：不只靠快速啟動的回覆（可能沒送到、或比這支程式先到）：自己用裝置憑證問一次伺服器（op pushstate，唯讀）
+  function ask() { post('pushstate', {}).then(function (r) { if (!pending || !r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {}); }
   function show() { var m = el('more'); if (m) m.className = 'more on'; var s = el('st'); if (s) s.textContent = '開啟之後，按下方按鈕進入會員平台。'; bar(true); }
   function release() { window.__tmReleased = true; var x = window.__tmHeld; window.__tmHeld = null; if (!x) return; if (Date.now() - (window.__tmHeldAt || 0) > 90000 && window.__tmGo) window.__tmGo(); else location.replace(x); }
   function setBadge(n) { if (!BADGE || !SUP || perm() !== 'granted') return; try { (n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(function () {}); } catch (e) {} }
