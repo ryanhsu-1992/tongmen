@@ -38,7 +38,8 @@ window.__tmGo=go;
 if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},7000);else if(!fast())go();return}
 // App 模式：有待領的配對碼時先領一次，再進平台；回到前景時也領（會員剛在平台按了「記住」）
 // 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
-if(!dk()||g(L))claim(go,10000);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
+// 2026-11-18 t660u：領回後直接走快速啟動（以前領回後走一般登入流程，第一次打開較慢）
+if(!dk()||g(L))claim(function(){if(!fast())go()},10000);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
 var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
 window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
