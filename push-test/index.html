@@ -1,0 +1,158 @@
+<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#5B3A24"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png"><meta name="apple-mobile-web-app-title" content="同門會測試">
+<title>同門會（推播測試）</title>
+<script>/* 記住這支手機（2026-10-27）：iPhone Safari 會清掉 Apps Script 內嵌框的儲存空間，所以裝置憑證改存在這個入口網站（第一方），每次打開時用網址 #dk=… 交給平台（# 後面的內容不會送到任何伺服器；平台讀到後立刻從網址列移除）。
+   主畫面 App（2026-10-27 晚）：iOS 26 起「加入主畫面」一律是獨立 App，平台（script.google.com）會在 App 內的 Safari 視窗開啟，那裡的儲存空間跟 App 不同；
+   所以 App 模式改用一次性配對碼（#app&pair=…）：會員在平台按「記住這支手機」後，這頁回到前景或下次打開時，自己向伺服器領回憑證，存在 App 裡（只領一次）。 */
+function __nav(x){if(window.__tmHold&&window.__tmHold()){window.__tmHeld=x;return}location.replace(x)}
+(function(){var u='https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec',K='tm_dk',L='tm_dk_lo',P='tm_pair',N='tm_keep_no',RE=/^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/,PR=/^[0-9a-f]{32}$/;
+function g(k){try{return localStorage.getItem(k)||''}catch(e){return''}}function s(k,v){try{if(v)localStorage.setItem(k,v);else localStorage.removeItem(k)}catch(e){}}
+var h=location.hash.replace(/^#/,''),m=/(?:^|&)save=([^&]*)/.exec(h),v=m?decodeURIComponent(m[1]):'';if(h){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+if(RE.test(v)){s(K,v);s(L,'');s(N,'')}if(/(?:^|&)forget=1/.test(h)){s(K,'');s(L,'')}if(/(?:^|&)lo=1/.test(h))s(L,'1');if(/(?:^|&)resume=1/.test(h))s(L,'');
+if(/[?&]howto\b/.test(location.search)){location.replace('../howto.html');return}
+var SA=false;try{SA=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches}catch(e){}
+function dk(){var d=g(K);return RE.test(d)?d:''}
+function rnd(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.prototype.map.call(a,function(x){return(x<16?'0':'')+x.toString(16)}).join('')}
+function pair(){var p=g(P);if(!PR.test(p)){try{p=rnd()}catch(e){return''}s(P,p)}return p}
+function frag(){var d=dk(),f=d?(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'nodk';var p=pair();if(p)f='app&'+(SA?'':'desk&')+'pair='+p+'&'+f;var n=+g(N)||0;if(n&&Date.now()-n<30*864e5)f+='&keepno';return f}
+function url(){return u+'#'+frag()}
+function apply(j,keepP){if(!j||!j.ok)return;var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');s(N,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
+var busy=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||busy){cb&&cb();return}busy=1;var done=false,fin=function(j){if(done)return;done=true;busy=0;try{apply(j)}catch(e){}cb&&cb()};
+try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r){return r.json()}).then(fin,function(){fin(null)})}catch(e){fin(null)}setTimeout(function(){fin(null)},ms||4000)}
+// 快速啟動（2026-10-28）：已記住這支手機（有憑證、沒登出）→ 不再先等配對碼（以前每次最多等 2.5 秒）。
+// 產生一次性啟動碼 l，把「憑證＋配對碼＋l」用 POST 內容交給伺服器（不在網址），同時立刻前往 exec?lw=l；伺服器驗證完、平台直接顯示首頁。
+// 回覆（領回的記住／登出等）照舊存進 App；這次帶出去的配對碼繼續使用（不清掉），平台之後的記住／登出還是存在同一個配對碼。
+function br(){var ua=navigator.userAgent||'',ipad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);return SA?(ipad?'iPad App':'iPhone App'):''}
+function fast(){var d=dk();if(!d||g(L)||!window.fetch)return false;var l;try{l=rnd()}catch(e){return false}var f=frag(),p=g(P),ua=navigator.userAgent||'';
+// Safari／iPhone（WebKit）：POST 用 keepalive 送出後立刻換頁（實測 WebKit 可讀回覆）；其他瀏覽器（Chrome 的 keepalive 遇到轉址讀不到回覆）：等回覆再換頁，最多 6 秒
+var wk=/AppleWebKit/.test(ua)&&!/Chrome\/|Chromium|Edg\/|Firefox\/|Android/.test(ua),q;
+try{q=fetch(u,{method:'POST',body:JSON.stringify({op:'launch',l:l,dc:d,pair:PR.test(p)?p:'',br:br()}),headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',cache:'no-store',keepalive:wk}).then(function(r){return r.json()})}catch(e){return false}
+if(wk){q.then(function(j){try{apply(j,true)}catch(e){}},function(){});paint(function(){__nav(u+'?lw='+l+'#'+f)});return true}
+var done=false,fin=function(j){if(done)return;done=true;try{apply(j,true)}catch(e){}if(j&&j['in']&&!g(L))__nav(u+'?lw='+l+'#'+frag());else go()};
+q.then(fin,function(){fin(null)});setTimeout(function(){fin(null)},6000);return true}
+function paint(cb){var n=0,f=function(){if(!n++)cb()},r=function(){(window.requestAnimationFrame||setTimeout)(function(){setTimeout(f,0)})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',r);else r();setTimeout(f,300)}
+function go(){__nav(url())}
+window.__tmGo=go;
+// 電腦／一般瀏覽器（2026-10-28 比照手機 App）：也用配對碼自動記住；還沒記住（或登出過）時先領一次，有憑證就走快速啟動
+// 2026-11-13：領回最多等 7 秒（原 2.5 秒；伺服器慢時逾時換頁會讓已領走的記住遺失，下次整頁重新整理又要再問）；伺服器快時照樣立刻進入
+if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},7000);else if(!fast())go();return}
+// App 模式：有待領的配對碼時先領一次，再進平台；回到前景時也領（會員剛在平台按了「記住」）
+// 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
+if(!dk()||g(L))claim(go);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
+var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
+window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
+document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){e.preventDefault();go()})});
+})();</script>
+<noscript><meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec"></noscript>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F3ECE2;color:#241812;font-family:-apple-system,"PingFang TC","Noto Sans CJK TC","Microsoft JhengHei",sans-serif}.box{max-width:360px;padding:32px 24px;text-align:center}.ld{display:flex;flex-direction:column;align-items:center;gap:18px}.mk{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:#241812;box-shadow:inset 0 0 0 1px rgba(196,154,92,.55);overflow:hidden}.mk svg{width:100%;height:100%;display:block}.sp{width:28px;height:28px;border-radius:50%;border:3px solid #E2D2BC;border-top-color:#3B2A20;animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}.ld p{margin:0;color:#7D6B5C;font-size:14px}.more{opacity:0;transition:opacity .3s;pointer-events:none}.more.on{opacity:1;pointer-events:auto}.ico{width:120px;height:120px;border-radius:27px;box-shadow:0 6px 18px rgba(36,24,18,.25)}h1{font-size:22px;margin:18px 0 6px}p{color:#6B4A33;font-size:15px;line-height:1.6}.btn{display:inline-block;margin-top:14px;padding:12px 28px;border-radius:999px;background:#5B3A24;color:#F5EFE6;text-decoration:none;font-weight:700}ol{text-align:left;font-size:15px;line-height:1.7;padding-left:22px;margin:18px 0}li{margin-bottom:10px}small{color:#7D6B5C}</style><style>
+.bd-bar{margin:22px auto 0;max-width:340px;text-align:left;background:linear-gradient(90deg,#FFF6E6,#FFFBF3);border:1px solid #F0D9AE;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;box-shadow:0 6px 18px rgba(36,24,18,.08)}
+.bd-bar .bd-i{flex:none;width:30px;height:30px;border-radius:50%;background:#F7E6C4;display:grid;place-items:center;color:#B07A22}
+.bd-bar .bd-i svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bd-bar strong{display:block;font-size:15px;margin-bottom:3px}
+.bd-bar p{margin:0;font-size:13px;line-height:1.6;color:#5b4a3c}
+.bd-acts{display:flex;gap:8px;margin-top:10px}
+.bd-acts button{font:inherit;font-size:14px;border-radius:999px;padding:8px 18px;border:1px solid #D9C3A0;background:#fff;color:#3B2A20;cursor:pointer}
+.bd-acts button.p{background:#3B2A20;color:#fff;border-color:#3B2A20}
+.bd-msg{margin:16px auto 0;max-width:340px;font-size:13px;line-height:1.6;color:#5b4a3c}
+.pd{margin:18px auto 0;max-width:340px;font-size:11.5px;line-height:1.7;color:#7D6B5C;word-break:break-all}
+.pd a{color:#7D6B5C}
+</style></head><body><div class="box">
+<div class="ld" role="status" aria-live="polite"><div class="mk" aria-label="台大矯正同門會"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="M12.22 45.45 A13 20 0 1 1 35.78 45.45" fill="none" stroke="#C49A5C" stroke-width="1.2"></path><g transform="translate(11.44 42.18) rotate(-99.88)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(13.69 24.82) rotate(-63.49)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(24 17) rotate(0)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(34.31 24.82) rotate(63.49)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g><g transform="translate(36.56 42.18) rotate(99.88)" fill="#F5EFE6" stroke="#F5EFE6" stroke-width="0.4"><rect x="-2.8" y="-2.18" width="5.6" height="4.37" rx="0.9"></rect><rect x="-2.07" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="-3.14" width="1.68" height="1.12" rx="0.45"></rect><rect x="-2.07" y="2.02" width="1.68" height="1.12" rx="0.45"></rect><rect x="0.39" y="2.02" width="1.68" height="1.12" rx="0.45"></rect></g></svg></div><div class="sp"></div><p id="st">正在載入會員資料…</p></div>
+<div class="more" id="more"><a class="btn" id="go" href="https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec">進入同門會</a>
+<p><small><a href="../howto.html" style="color:#7D6B5C">如何加到手機桌面或電腦書籤？</a></small></p></div>
+<script>setTimeout(function(){var m=document.getElementById('more');if(m)m.className='more on'},5000)</script>
+<div class="bd-bar" id="bdBar" role="region" aria-label="圖示通知數字" style="display:none"><div class="bd-i"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></div><div><strong>要開啟圖示上的未讀數字嗎？</strong><p>有新公告時，主畫面圖示右上角會出現紅底白字的數字，也會跳出一則通知提醒您。之後可以在「我的資料」隨時關閉。</p><div class="bd-acts"><button type="button" class="p" id="bdYes">開啟</button><button type="button" id="bdLater">之後再說</button></div></div></div>
+<p class="bd-msg" id="bdMsg" style="display:none"></p>
+<p class="pd" id="pdiag" style="display:none"></p><p class="pd"><a href="#" id="pdReset">測試用：重設這支手機的推播</a></p>
+</div><script>/* 圖示通知數字＋推播（入口頁）。只在「主畫面 App／已安裝」模式運作；一般瀏覽器分頁完全不動。
+ * 流程：每次打開／回到前景 → 問伺服器（裝置憑證驗證）：這位會員有沒有開放、偏好開不開、未讀數 →
+ *   開放且偏好開：已允許通知 → 訂閱（沒訂過才訂）並把圖示數字設為未讀數；還沒決定 → 顯示邀請條。
+ *   沒開放：什麼都不做、什麼都不顯示。偏好關：退訂並清掉數字。 */
+(function () {
+  var VK = 'BNAenwWAuyeefdBjPpA6qhZiSln3Nbr5UPaaDTqaTVm_UvpXzHE5Vv9HDTV-cTOf7K0k2KcP3duDhZBBOoR9Ozs', U = 'https://script.google.com/macros/s/AKfycbz6wf-JvLzQq-j80hFVlkytF4YnXS60A8yqvoWI1cZySb9XqO7uTV6hxyAwtLRLPlUCFw/exec', DIAG = true;
+  var SA = false; try { SA = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches; } catch (e) {}
+  var RE = /^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/, LATER = 'tm_bd_later', OKK = 'tm_bd_ok';
+  function g(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function st(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) {} }
+  function dk() { var d = g('tm_dk'); return RE.test(d) ? d : ''; }
+  function el(i) { return document.getElementById(i); }
+  var SUP = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  var BADGE = 'setAppBadge' in navigator;
+  function snoozed() { var t = +g(LATER) || 0; return t && Date.now() - t < 7 * 864e5; }
+  // ---- 啟動時是否「先停在入口頁讓會員看到邀請」：只對已知開放的會員、尚未決定通知、沒按過「之後再說」 ----
+  window.__tmHold = function () { return !!(SA && SUP && !window.__tmReleased && Notification.permission === 'default' && dk() && g(OKK) === '1' && !snoozed()); };
+  function release() { window.__tmReleased = true; if (window.__tmHeld) { var x = window.__tmHeld; window.__tmHeld = null; location.replace(x); } }
+  window.__tmRelease = release;
+  document.addEventListener('click', function (e) { var t = e.target; if (t && t.closest && t.closest('#go')) window.__tmReleased = true; }, true);
+  if (!SA) return;
+  function post(op, x) {
+    var o = { op: op, dc: dk() }; for (var k in x) o[k] = x[k];
+    return fetch(U, { method: 'POST', body: JSON.stringify(o), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.json(); });
+  }
+  function hex(b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return (x < 16 ? '0' : '') + x.toString(16); }).join(''); }
+  function sid(ep) { return crypto.subtle.digest('SHA-256', new TextEncoder().encode('pushsub|' + ep)).then(function (b) { return hex(b).slice(0, 32); }); }
+  function u8(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; var r = atob(s), o = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) o[i] = r.charCodeAt(i); return o; }
+  function setBadge(n) { if (!BADGE || !SUP || Notification.permission !== 'granted') return Promise.resolve(); try { return (n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(function () {}); } catch (e) { return Promise.resolve(); } }
+  function ua() { var s = navigator.userAgent || ''; return /iPhone/.test(s) ? 'iPhone' : /iPad/.test(s) ? 'iPad' : /Android/.test(s) ? 'Android' : /Mac/.test(s) ? 'Mac' : /Windows/.test(s) ? 'Windows' : 'other'; }
+  function subscribeNow(reg) {
+    var opt = { userVisibleOnly: true, applicationServerKey: u8(VK) };
+    return reg.pushManager.subscribe(opt).catch(function () { return reg.pushManager.getSubscription().then(function (old) { return (old ? old.unsubscribe() : Promise.resolve()).then(function () { return reg.pushManager.subscribe(opt); }); }); });
+  }
+  var info = { perm: '-', sub: '-', srv: '-', n: '-' };
+  function diag() { var d = el('pdiag'); if (!d || !DIAG) return; d.style.display = ''; var pm = { granted: '已允許', denied: '已拒絕', default: '尚未決定' }[info.perm] || info.perm; d.textContent = '推播測試頁｜通知權限：' + pm + '｜這支手機已訂閱：' + info.sub + '｜伺服器：' + info.srv + '｜圖示數字：' + info.n + (BADGE ? '' : '（此裝置不支援圖示數字）'); }
+  function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
+  var busy = false, last = 0;
+  function sync(force) {
+    if (busy || !dk()) return; if (!force && Date.now() - last < 2500) return; last = Date.now(); busy = true;
+    run().catch(function () {}).then(function () { busy = false; diag(); });
+  }
+  function run() {
+    var reg = null, sub = null, id = '';
+    info.perm = SUP ? Notification.permission : '不支援';
+    var p0 = SUP ? navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (r) { reg = r; return navigator.serviceWorker.ready; }).then(function () { return reg.pushManager.getSubscription(); }).then(function (s) { sub = s; return s ? sid(s.endpoint) : ''; }).then(function (x) { id = x; }).catch(function () {}) : Promise.resolve();
+    return p0.then(function () { info.sub = sub ? '是' : '否'; return post('pushstate', { id: id }); }).then(function (j) {
+      if (!j || !j.ok) { info.srv = '連不上'; return; }
+      if (!j.allowed) { info.srv = '尚未開放給這位會員'; st(OKK, ''); bar(false); return; }
+      if (!j.on) {
+        info.srv = '偏好已關閉'; st(OKK, ''); bar(false);
+        var jobs = [setBadge(0)]; if (sub) { var s0 = sub; jobs.push(s0.unsubscribe().catch(function () {})); }
+        return Promise.all(jobs).then(function () { info.sub = '否'; info.n = '已清除'; if (BADGE && SUP) try { navigator.clearAppBadge(); } catch (e) {} });
+      }
+      info.srv = '已開放、偏好開'; st(OKK, '1'); info.perm = SUP ? Notification.permission : '不支援';
+      if (SUP && Notification.permission === 'granted') {
+        bar(false);
+        var need = reg && (!sub || !j.has), pr = Promise.resolve();
+        if (need) pr = subscribeNow(reg).then(function (s) { sub = s; info.sub = s ? '是' : '否'; return s ? post('pushsub', { sub: s.toJSON(), ua: ua() }) : null; });
+        return pr.then(function () { info.n = String(j.n || 0); return setBadge(j.n || 0); });
+      }
+      if (SUP && Notification.permission === 'default') { if (!snoozed()) bar(true); else bar(false); }
+      else bar(false);
+    });
+  }
+  function enable() {   // 使用者按「開啟」（點擊手勢內才能詢問通知權限）
+    if (!SUP) { bar(false, '這個瀏覽器不支援圖示通知。'); release(); return; }
+    var p; try { p = Notification.requestPermission(); } catch (e) { p = Promise.resolve('denied'); }
+    Promise.resolve(p).then(function (perm) {
+      if (perm === 'granted') { bar(false, '已開啟。'); sync(true); setTimeout(release, 600); }
+      else { bar(false, '沒有開啟也沒關係，之後想開再到「我的資料」或手機設定。'); st(LATER, String(Date.now())); release(); }
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    var y = el('bdYes'), l = el('bdLater'), r = el('pdReset');
+    if (y) y.addEventListener('click', enable);
+    if (l) l.addEventListener('click', function () { st(LATER, String(Date.now())); bar(false); release(); });
+    if (r) r.addEventListener('click', function (e) {   // 測試用：退訂這支手機、清掉數字、忘記「之後再說」
+      e.preventDefault(); st(LATER, '');
+      navigator.serviceWorker.getRegistration('./').then(function (reg) { return reg ? reg.pushManager.getSubscription() : null; }).then(function (s) {
+        var jobs = []; if (s) { jobs.push(sid(s.endpoint).then(function (i) { return post('pushunsub', { id: i }); })); jobs.push(s.unsubscribe()); }
+        return Promise.all(jobs);
+      }).catch(function () {}).then(function () { try { navigator.clearAppBadge(); } catch (x) {} sync(true); var d = el('pdiag'); if (d) d.textContent = '已重設這支手機的推播訂閱（可重新按「開啟」）'; });
+    });
+    if (window.__tmHold && window.__tmHold()) { var m = el('more'); if (m) m.className = 'more on'; bar(true); }
+    sync(true);
+  });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') sync(false); });
+  window.addEventListener('focus', function () { sync(false); });
+  window.addEventListener('pageshow', function () { sync(false); });
+})();
+</script></body></html>
