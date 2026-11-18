@@ -21,7 +21,7 @@
   window.__tmHold = function () {
     if (!cand()) return false;
     if (g(OKK) === '1') { show(); return true; }
-    if (unknown()) { if (!pending) { pending = true; setTimeout(function () { if (pending) { pending = false; st(CHK, String(Date.now() - 29 * 864e5)); release(); } }, 6000); } return true; }   // 逾時：1 天後再試
+    if (unknown()) { if (!pending) { pending = true; setTimeout(function () { if (pending) { pending = false; release(); } }, 6000); } return true; }   // 逾時：下次打開再等（11/19：不再擋一天）
     return false;
   };
   function show() { var m = el('more'); if (m) m.className = 'more on'; var s = el('st'); if (s) s.textContent = '開啟之後，按下方按鈕進入會員平台。'; bar(true); }
@@ -51,6 +51,8 @@
     if (wasPending) { if (cand()) show(); else release(); }
     if (perm() === 'granted') { setBadge(+n || 0); if (!g(SUBK)) subscribe().catch(function () {}); }
   };
+  // 11/19：快速啟動的回覆比 push.js 先到（index.html 先存在 __tmBdQ）→ 這裡補處理，不再漏掉邀請
+  if (window.__tmBdQ) { var q0 = window.__tmBdQ; window.__tmBdQ = null; try { window.__tmBd(q0[0], q0[1]); } catch (e) {} }
   function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
   function enable() {
     var p; try { p = Notification.requestPermission(); } catch (e) { p = Promise.resolve('denied'); }
