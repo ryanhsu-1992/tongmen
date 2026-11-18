@@ -34,11 +34,16 @@ function go(){__nav(url())}
 window.__tmGo=go;
 // 電腦／一般瀏覽器（2026-10-28 比照手機 App）：也用配對碼自動記住；還沒記住（或登出過）時先領一次，有憑證就走快速啟動
 // 2026-11-13：領回最多等 7 秒（原 2.5 秒；伺服器慢時逾時換頁會讓已領走的記住遺失，下次整頁重新整理又要再問）；伺服器快時照樣立刻進入
+// 2026-11-18 修正：iPhone／iPad 在瀏覽器（非主畫面 App）打開時「不自動換頁」，停在這頁。
+// iOS「加入主畫面」記的是按下當下的網址；若這頁一開就跳去平台網址，圖示就會直接連到平台（沒有入口外框、邀請條和圖示數字都不會運作，平台還會說「留不住登入」）。
+// 正式入口靠 howto.html 把網址換回入口；測試頁直接停住、顯示加入主畫面的步驟，按下「進入同門會」才前往平台。
+function ios(){var ua=navigator.userAgent||'';return /iP(hone|ad|od)/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
+if(!SA&&ios()){document.addEventListener('DOMContentLoaded',function(){var t=document.getElementById('st'),l=document.querySelector('.ld .sp'),m=document.getElementById('more');if(l)l.style.display='none';if(t)t.innerHTML='這是推播測試頁。請按下方的「分享」⬆︎ → 「加入主畫面」，加好後從主畫面的新圖示打開。<br>（在這個瀏覽器裡不會自動進入平台。）';if(m)m.className='more on';var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){e.preventDefault();go()})});return}
 if(!SA){if(!dk()||g(L))claim(function(){if(!fast())go()},7000);else if(!fast())go();return}
 // App 模式：有待領的配對碼時先領一次，再進平台；回到前景時也領（會員剛在平台按了「記住」）
 // 已有憑證時也領一次（可能剛在平台登出／忘記），但最多等 2.5 秒
 if(!dk()||g(L))claim(go);else if(!fast()){if(PR.test(g(P)))claim(go,2500);else go()}
-var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
+var away=false,last=0;function back(){if(Date.now()-last<3000)return;last=Date.now();claim(function(){try{window.__tmSync&&window.__tmSync()}catch(e){}var t=document.getElementById('st');if(t)t.textContent=dk()?'已記住這支手機。點下方按鈕進入會員平台。':'點下方按鈕進入會員平台。';var m=document.getElementById('more');if(m)m.className='more on'})}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){away=true}else if(away){away=false;back()}});
 window.addEventListener('pageshow',function(e){if(e.persisted)back()});window.addEventListener('focus',function(){if(away||Date.now()-last>3000)back()});
 document.addEventListener('DOMContentLoaded',function(){var b=document.getElementById('go');if(b)b.addEventListener('click',function(e){e.preventDefault();go()})});
@@ -106,6 +111,7 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
     if (busy || !dk()) return; if (!force && Date.now() - last < 2500) return; last = Date.now(); busy = true;
     run().catch(function () {}).then(function () { busy = false; diag(); });
   }
+  window.__tmSync = function () { sync(true); };   // 入口頁領回憑證後，立刻檢查推播狀態、顯示邀請條
   function run() {
     var reg = null, sub = null, id = '';
     info.perm = SUP ? Notification.permission : '不支援';
