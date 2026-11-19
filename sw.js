@@ -16,7 +16,7 @@ self.addEventListener('push', function (e) {
 self.addEventListener('message', function (e) {
   var d = e.data || {};
   if (d.t !== 'badge' || !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(d.u)) || !/^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/.test(String(d.dc))) return;
-  e.waitUntil(fetch(d.u, { method: 'POST', body: JSON.stringify({ op: 'pushstate', dc: d.dc }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store' })
+  e.waitUntil(fetch(d.u, { method: 'POST', body: JSON.stringify({ op: 'pushstate', dc: d.dc, s: 'sw' }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store' })
     .then(function (r) { return r.json(); })
     .then(function (j) {
       if (!j || !j.ok || !j.allowed || !self.navigator || !self.navigator.setAppBadge) return;

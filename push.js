@@ -25,7 +25,7 @@
     return false;
   };
   // 11/19：不只靠快速啟動的回覆（可能沒送到、或比這支程式先到）：自己用裝置憑證問一次伺服器（op pushstate，唯讀）
-  function ask() { post('pushstate', {}).then(function (r) { if (!pending || !r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {}); }
+  function ask() { post('pushstate', { s: 'pg' }).then(function (r) { if (!pending || !r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {}); }
   function show() { var m = el('more'); if (m) m.className = 'more on'; var s = el('st'); if (s) s.textContent = '開啟之後，按下方按鈕進入會員平台。'; bar(true); }
   function release() { window.__tmReleased = true; var x = window.__tmHeld; window.__tmHeld = null; if (!x) return; if (Date.now() - (window.__tmHeldAt || 0) > 90000 && window.__tmGo) window.__tmGo(); else location.replace(x); }
   function setBadge(n) { if (!BADGE || !SUP || perm() !== 'granted') return; try { (n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(function () {}); } catch (e) {} }
@@ -59,7 +59,7 @@
   function refresh() {
     if (!SA || !SUP || pending || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !U()) return;
     var t = Date.now(); if (t - loadedAt < 8000 || t - lastRef < 8000) return; lastRef = t;   // 11/19：20 秒改 8 秒（平台裡讀完公告、關掉視窗常常不到 20 秒；swBadge 啟動時問的那次不重複就好）
-    post('pushstate', {}).then(function (r) { if (!r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {});
+    post('pushstate', { s: 'pg' }).then(function (r) { if (!r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {});
   }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refresh(); });
   window.addEventListener('pageshow', function (e) { if (e.persisted) refresh(); });
