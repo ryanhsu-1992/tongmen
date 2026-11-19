@@ -20,8 +20,10 @@ self.addEventListener('message', function (e) {
     .then(function (r) { return r.json(); })
     .then(function (j) {
       if (!j || !j.ok || !j.allowed || !self.navigator || !self.navigator.setAppBadge) return;
-      var n = j.on ? Math.max(0, Number(j.n) || 0) : 0;
-      return n > 0 ? self.navigator.setAppBadge(n) : self.navigator.clearAppBadge();
+      var n = j.on ? Math.max(0, Number(j.n) || 0) : 0, dg = j.dg === 1;
+      // 11/19 診斷：只有伺服器回 dg=1（推播名單內的測試者）才回報結果（swok／swer＋數字）
+      var ack = function (t) { return dg ? fetch(d.u, { method: 'POST', body: JSON.stringify({ op: 'pushstate', dc: d.dc, s: t + Math.min(99, n) }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store' }).catch(function () {}) : null; };
+      return (n > 0 ? self.navigator.setAppBadge(n) : self.navigator.clearAppBadge()).then(function () { return ack('swok'); }, function () { return ack('swer'); });
     }).catch(function () {}));
 });
 self.addEventListener('notificationclick', function (e) {

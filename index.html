@@ -15,7 +15,7 @@ function rnd(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.p
 function pair(){var p=g(P);if(!PR.test(p)){try{p=rnd()}catch(e){return''}s(P,p)}return p}
 function frag(){var d=dk(),f=d?(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'nodk';var p=pair();if(p)f='app&'+(SA?'':'desk&')+'pair='+p+'&'+f;var n=+g(N)||0;if(n&&Date.now()-n<30*864e5)f+='&keepno';return f}
 function url(){return u+'#'+frag()}
-function apply(j,keepP){if(!j||!j.ok)return;try{if(window.__tmBd)window.__tmBd(j.bdOn,j.badge);else window.__tmBdQ=[j.bdOn,j.badge]}catch(e){}var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');s(N,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
+function apply(j,keepP){if(!j||!j.ok)return;window.__tmDg=j.dg?1:0;try{if(window.__tmBd)window.__tmBd(j.bdOn,j.badge);else window.__tmBdQ=[j.bdOn,j.badge]}catch(e){}var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');s(N,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
 // 2026-11-18（H Ryan 核准 t656u）：領回是一次性的（伺服器交出就刪掉），伺服器常要 3～6 秒。以前逾時就把晚到的回覆丟掉 → 「記住這支手機」遺失。
 // 現在：回覆不管多晚到都存下（逾時只是先讓畫面繼續）；同一時間只送一個領回（最多 40 秒視為失敗）；App 等待改為最多 10 秒（電腦維持 7 秒）。
 var busy=0,busyT=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||(busy&&Date.now()-busyT<40000)){cb&&cb();return}busy=1;busyT=Date.now();var done=false,fin=function(){if(done)return;done=true;cb&&cb()};
@@ -23,11 +23,12 @@ try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r)
 // 快速啟動（2026-10-28）：已記住這支手機（有憑證、沒登出）→ 不再先等配對碼（以前每次最多等 2.5 秒）。
 // 產生一次性啟動碼 l，把「憑證＋配對碼＋l」用 POST 內容交給伺服器（不在網址），同時立刻前往 exec?lw=l；伺服器驗證完、平台直接顯示首頁。
 // 回覆（領回的記住／登出等）照舊存進 App；這次帶出去的配對碼繼續使用（不清掉），平台之後的記住／登出還是存在同一個配對碼。
+function dg(){try{return 'c'+((navigator.serviceWorker&&navigator.serviceWorker.controller)?1:0)+'o'+(g('tm_bd_ok')==='1'?1:0)+'p'+((window.Notification&&Notification.permission==='granted')?1:0)+'s'+(SA?1:0)+'b'+(('setAppBadge' in navigator)?1:0)}catch(e){return 'x0'}}
 function br(){var ua=navigator.userAgent||'',ipad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);return SA?(ipad?'iPad App':'iPhone App'):''}
 function fast(){var d=dk();if(!d||g(L)||!window.fetch)return false;var l;try{l=rnd()}catch(e){return false}var f=frag(),p=g(P),ua=navigator.userAgent||'';
 // Safari／iPhone（WebKit）：POST 用 keepalive 送出後立刻換頁（實測 WebKit 可讀回覆）；其他瀏覽器（Chrome 的 keepalive 遇到轉址讀不到回覆）：等回覆再換頁，最多 6 秒
 var wk=/AppleWebKit/.test(ua)&&!/Chrome\/|Chromium|Edg\/|Firefox\/|Android/.test(ua),q;
-try{q=fetch(u,{method:'POST',body:JSON.stringify({op:'launch',l:l,dc:d,pair:PR.test(p)?p:'',br:br()}),headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',cache:'no-store',keepalive:wk}).then(function(r){return r.json()})}catch(e){return false}
+try{q=fetch(u,{method:'POST',body:JSON.stringify({op:'launch',l:l,dc:d,pair:PR.test(p)?p:'',br:br(),x:dg()}),headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',cache:'no-store',keepalive:wk}).then(function(r){return r.json()})}catch(e){return false}
 if(wk){q.then(function(j){try{apply(j,true)}catch(e){}},function(){});paint(function(){__nav(u+'?lw='+l+'#'+f)});return true}
 var done=false,fin=function(j){if(done)return;done=true;try{apply(j,true)}catch(e){}if(j&&j['in']&&!g(L))__nav(u+'?lw='+l+'#'+frag());else go()};
 q.then(fin,function(){fin(null)});setTimeout(function(){fin(null)},6000);return true}

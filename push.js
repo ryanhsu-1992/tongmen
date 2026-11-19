@@ -25,10 +25,12 @@
     return false;
   };
   // 11/19：不只靠快速啟動的回覆（可能沒送到、或比這支程式先到）：自己用裝置憑證問一次伺服器（op pushstate，唯讀）
-  function ask() { post('pushstate', { s: 'pg' }).then(function (r) { if (!pending || !r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {}); }
+  function ask() { post('pushstate', { s: 'pg' }).then(function (r) { if (!pending || !r || !r.ok) return; window.__tmDg = r.dg ? 1 : 0; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {}); }
   function show() { var m = el('more'); if (m) m.className = 'more on'; var s = el('st'); if (s) s.textContent = '開啟之後，按下方按鈕進入會員平台。'; bar(true); }
   function release() { window.__tmReleased = true; var x = window.__tmHeld; window.__tmHeld = null; if (!x) return; if (Date.now() - (window.__tmHeldAt || 0) > 90000 && window.__tmGo) window.__tmGo(); else location.replace(x); }
-  function setBadge(n) { if (!BADGE || !SUP || perm() !== 'granted') return; try { (n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(function () {}); } catch (e) {} }
+  // 11/19 診斷：只有伺服器回 dg=1（推播名單內的測試者）才回報 setAppBadge／clearAppBadge 的結果（pgok／pger／pgex＋數字），其他會員不多送任何請求。
+  function ack(t, n) { if (!window.__tmDg) return; try { post('pushstate', { s: t + Math.min(99, +n || 0) }).then(function () {}, function () {}); } catch (e) {} }
+  function setBadge(n) { if (!BADGE || !SUP || perm() !== 'granted') return; try { (n > 0 ? navigator.setAppBadge(n) : navigator.clearAppBadge()).then(function () { ack('pgok', n); }, function () { ack('pger', n); }); } catch (e) { ack('pgex', n); } }
   function post(op, x) {
     var o = { op: op, dc: dk() }; for (var k in x) o[k] = x[k];
     var f = fetch(U(), { method: 'POST', body: JSON.stringify(o), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store', keepalive: true }).then(function (r) { return r.json(); });
@@ -59,7 +61,7 @@
   function refresh() {
     if (!SA || !SUP || pending || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !U()) return;
     var t = Date.now(); if (t - loadedAt < 8000 || t - lastRef < 8000) return; lastRef = t;   // 11/19：20 秒改 8 秒（平台裡讀完公告、關掉視窗常常不到 20 秒；swBadge 啟動時問的那次不重複就好）
-    post('pushstate', { s: 'pg' }).then(function (r) { if (!r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {});
+    post('pushstate', { s: 'pg' }).then(function (r) { if (!r || !r.ok) return; window.__tmDg = r.dg ? 1 : 0; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {});
   }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refresh(); });
   window.addEventListener('pageshow', function (e) { if (e.persisted) refresh(); });
@@ -72,7 +74,7 @@
   function swBadge() {
     if (!SA || !SUP || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !/^https:\/\/script\.google\.com\//.test(U())) return;
     var m = { t: 'badge', u: U().split('#')[0].split('?')[0], dc: dk() };
-    try { var c = navigator.serviceWorker.controller; if (c) c.postMessage(m); } catch (e) {}
+    try { var c = navigator.serviceWorker.controller; if (c) c.postMessage(m); else navigator.serviceWorker.ready.then(function (r) { if (r && r.active && !navigator.serviceWorker.controller) r.active.postMessage(m); }).catch(function () {}); } catch (e) {}   // 11/19：頁面還沒被 SW 接管（controller 為空）時，改直接交給 active 的 SW
     try { navigator.serviceWorker.getRegistration('./').then(function (r) { if (!r) return; r.update().catch(function () {}); var w = r.waiting || r.installing; if (w) try { w.postMessage(m); } catch (e) {} }).catch(function () {}); } catch (e) {}
   }
   swBadge();
