@@ -58,12 +58,15 @@
   var loadedAt = Date.now(), lastRef = 0;
   function refresh() {
     if (!SA || !SUP || pending || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !U()) return;
-    var t = Date.now(); if (t - loadedAt < 20000 || t - lastRef < 20000) return; lastRef = t;
+    var t = Date.now(); if (t - loadedAt < 8000 || t - lastRef < 8000) return; lastRef = t;   // 11/19：20 秒改 8 秒（平台裡讀完公告、關掉視窗常常不到 20 秒；swBadge 啟動時問的那次不重複就好）
     post('pushstate', {}).then(function (r) { if (!r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {});
   }
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refresh(); });
   window.addEventListener('pageshow', function (e) { if (e.persisted) refresh(); });
   window.addEventListener('focus', refresh);
+  // 11/19：關掉平台視窗回到入口時，iOS 不一定送出「回到前景」事件 → 補兩個保險：①回來後第一次碰畫面（距上次問超過 60 秒）②計時器發現頁面被凍結過（間隔 > 9 秒）。都走同一個 refresh（唯讀 pushstate、最少間隔 8 秒）。
+  document.addEventListener('pointerdown', function () { if (Date.now() - lastRef > 60000) refresh(); }, { capture: true, passive: true });
+  var tick = Date.now(); setInterval(function () { var t = Date.now(), gap = t - tick; tick = t; if (gap > 9000 && document.visibilityState === 'visible') refresh(); }, 3000);
   // 11/19：入口一打開（App、已開啟通知數字）就請 service worker 去問未讀數並設定圖示數字——它不會因入口馬上換成平台而中斷。
   // 同時檢查 sw.js 有沒有新版（舊版不認得這個訊息，下一次打開就會用新版）。
   function swBadge() {
