@@ -53,6 +53,17 @@
     if (wasPending) { if (cand()) show(); else release(); }
     if (perm() === 'granted') { setBadge(+n || 0); if (!g(SUBK)) subscribe().catch(function () {}); }
   };
+  // 11/19：圖示數字只在「入口網頁自己跑」的時候才會更新（平台在 Google 的頁面，碰不到圖示）。入口頁回到前景（App 切回來、從平台回來）時，
+  // 用裝置憑證問一次伺服器目前的未讀數（op pushstate，唯讀）→ 設定圖示數字；已關閉／未開放 → 照 __tmBd 的處理（退訂、清掉）。20 秒內不重複問。
+  var loadedAt = Date.now(), lastRef = 0;
+  function refresh() {
+    if (!SA || !SUP || pending || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !U()) return;
+    var t = Date.now(); if (t - loadedAt < 20000 || t - lastRef < 20000) return; lastRef = t;
+    post('pushstate', {}).then(function (r) { if (!r || !r.ok) return; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {});
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refresh(); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) refresh(); });
+  window.addEventListener('focus', refresh);
   // 11/19：快速啟動的回覆比 push.js 先到（index.html 先存在 __tmBdQ）→ 這裡補處理，不再漏掉邀請
   if (window.__tmBdQ) { var q0 = window.__tmBdQ; window.__tmBdQ = null; try { window.__tmBd(q0[0], q0[1]); } catch (e) {} }
   function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
