@@ -15,7 +15,7 @@ function rnd(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.p
 function pair(){var p=g(P);if(!PR.test(p)){try{p=rnd()}catch(e){return''}s(P,p)}return p}
 function frag(){var d=dk(),f=d?(g(L)?'lo&':'')+'dk='+encodeURIComponent(d):'nodk';var p=pair();if(p)f='app&'+(SA?'':'desk&')+'pair='+p+'&'+f;var n=+g(N)||0;if(n&&Date.now()-n<30*864e5)f+='&keepno';return f}
 function url(){return u+'#'+frag()}
-function apply(j,keepP){if(!j||!j.ok)return;window.__tmDg=j.dg?1:0;try{if(window.__tmBd)window.__tmBd(j.bdOn,j.badge);else window.__tmBdQ=[j.bdOn,j.badge]}catch(e){}var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');s(N,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
+function apply(j,keepP,age){if(!j||!j.ok)return;window.__tmDg=j.dg?1:0;/* 11/19：只有快速啟動的回覆才處理「有沒有開放／數字」；領回（dvpair）的回覆沒有 bdOn，以前也被當成「沒開放」→ 清掉 tm_bd_ok，之後 SW／回前景更新全部失效。age＝這個回覆從送出到被處理隔多久（頁面被凍結很久才處理的舊回覆不再設數字）*/try{if(keepP||j.bdOn!==undefined){if(window.__tmBd)window.__tmBd(j.bdOn,j.badge,age);else window.__tmBdQ=[j.bdOn,j.badge,age]}}catch(e){}var got=false;if(j.forget){s(K,'');s(L,'');got=true}if(j.dc&&RE.test(j.dc)){s(K,j.dc);s(L,'');s(N,'');got=true}if(j.lo===1){s(L,'1');got=true}if(j.lo===0){s(L,'');got=true}if(j.no){s(N,String(Date.now()));got=true}if(got&&!keepP)s(P,'')}
 // 2026-11-18（H Ryan 核准 t656u）：領回是一次性的（伺服器交出就刪掉），伺服器常要 3～6 秒。以前逾時就把晚到的回覆丟掉 → 「記住這支手機」遺失。
 // 現在：回覆不管多晚到都存下（逾時只是先讓畫面繼續）；同一時間只送一個領回（最多 40 秒視為失敗）；App 等待改為最多 10 秒（電腦維持 7 秒）。
 var busy=0,busyT=0;function claim(cb,ms){var p=g(P);if(!PR.test(p)||(busy&&Date.now()-busyT<40000)){cb&&cb();return}busy=1;busyT=Date.now();var done=false,fin=function(){if(done)return;done=true;cb&&cb()};
@@ -25,12 +25,12 @@ try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r)
 // 回覆（領回的記住／登出等）照舊存進 App；這次帶出去的配對碼繼續使用（不清掉），平台之後的記住／登出還是存在同一個配對碼。
 function dg(){try{return 'c'+((navigator.serviceWorker&&navigator.serviceWorker.controller)?1:0)+'o'+(g('tm_bd_ok')==='1'?1:0)+'p'+((window.Notification&&Notification.permission==='granted')?1:0)+'s'+(SA?1:0)+'b'+(('setAppBadge' in navigator)?1:0)}catch(e){return 'x0'}}
 function br(){var ua=navigator.userAgent||'',ipad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);return SA?(ipad?'iPad App':'iPhone App'):''}
-function fast(){var d=dk();if(!d||g(L)||!window.fetch)return false;var l;try{l=rnd()}catch(e){return false}var f=frag(),p=g(P),ua=navigator.userAgent||'';
+function fast(){var d=dk();if(!d||g(L)||!window.fetch)return false;var l;try{l=rnd()}catch(e){return false}var f=frag(),p=g(P),ua=navigator.userAgent||'',t0=Date.now();
 // Safari／iPhone（WebKit）：POST 用 keepalive 送出後立刻換頁（實測 WebKit 可讀回覆）；其他瀏覽器（Chrome 的 keepalive 遇到轉址讀不到回覆）：等回覆再換頁，最多 6 秒
 var wk=/AppleWebKit/.test(ua)&&!/Chrome\/|Chromium|Edg\/|Firefox\/|Android/.test(ua),q;
 try{q=fetch(u,{method:'POST',body:JSON.stringify({op:'launch',l:l,dc:d,pair:PR.test(p)?p:'',br:br(),x:dg()}),headers:{'Content-Type':'text/plain;charset=utf-8'},credentials:'omit',cache:'no-store',keepalive:wk}).then(function(r){return r.json()})}catch(e){return false}
-if(wk){q.then(function(j){try{apply(j,true)}catch(e){}},function(){});paint(function(){__nav(u+'?lw='+l+'#'+f)});return true}
-var done=false,fin=function(j){if(done)return;done=true;try{apply(j,true)}catch(e){}if(j&&j['in']&&!g(L))__nav(u+'?lw='+l+'#'+frag());else go()};
+if(wk){q.then(function(j){try{apply(j,true,Date.now()-t0)}catch(e){}},function(){});paint(function(){__nav(u+'?lw='+l+'#'+f)});return true}
+var done=false,fin=function(j){if(done)return;done=true;try{apply(j,true,Date.now()-t0)}catch(e){}if(j&&j['in']&&!g(L))__nav(u+'?lw='+l+'#'+frag());else go()};
 q.then(fin,function(){fin(null)});setTimeout(function(){fin(null)},6000);return true}
 function paint(cb){var n=0,f=function(){if(!n++)cb()},r=function(){(window.requestAnimationFrame||setTimeout)(function(){setTimeout(f,0)})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',r);else r();setTimeout(f,300)}
 function go(){__nav(url())}
@@ -65,4 +65,4 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
 <script>setTimeout(function(){var m=document.getElementById('more');if(m)m.className='more on'},5000)</script>
 <div class="bd-bar" id="bdBar" role="region" aria-label="圖示通知數字" style="display:none"><div class="bd-i"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></div><div><strong>要開啟圖示上的未讀數字嗎？</strong><p>有新公告時，主畫面圖示右上角會出現紅底白字的數字，也會跳出一則通知提醒您。之後可以在「我的資料」隨時關閉。</p><div class="bd-acts"><button type="button" class="p" id="bdYes">開啟</button><button type="button" id="bdLater">之後再說</button></div></div></div>
 <p class="bd-msg" id="bdMsg" style="display:none"></p>
-</div><script src="push.js"></script></body></html>
+</div><script src="push.js?v=1119c"></script></body></html>

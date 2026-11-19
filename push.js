@@ -46,14 +46,18 @@
   }
   function unsubscribe() { st(SUBK, ''); if (!SUP) return; navigator.serviceWorker.getRegistration('./').then(function (r) { return r ? r.pushManager.getSubscription() : null; }).then(function (s) { if (s) s.unsubscribe(); }).catch(function () {}); setBadge(0); try { navigator.clearAppBadge && navigator.clearAppBadge(); } catch (e) {} }
   // 快速啟動／領回的回覆（index.html 的 apply 會呼叫）
-  window.__tmBd = function (on, n) {
+  window.__tmBd = function (on, n, age) {
     if (!SA || !SUP) return;
     var wasPending = pending; pending = false;
     if (on === undefined) { st(OKK, ''); st(CHK, String(Date.now())); if (wasPending) release(); return; }   // 沒開放：30 天內不再等
     if (!on) { st(OKK, ''); st(CHK, String(Date.now())); unsubscribe(); if (wasPending) release(); return; }
     st(OKK, '1'); st(CHK, '');
     if (wasPending) { if (cand()) show(); else release(); }
-    if (perm() === 'granted') { setBadge(+n || 0); if (!g(SUBK)) subscribe().catch(function () {}); }
+    if (perm() === 'granted') {
+      // 11/19：頁面被凍結很久（例如上面蓋著平台視窗）才處理的舊回覆，數字早就過時 → 不設，改問伺服器現在的數字
+      if (age > 15000) { ack('pgst', n); try { refresh(); } catch (e) {} } else setBadge(+n || 0);
+      if (!g(SUBK)) subscribe().catch(function () {});
+    }
   };
   // 11/19：圖示數字只在「入口網頁自己跑」的時候才會更新（平台在 Google 的頁面，碰不到圖示）。入口頁回到前景（App 切回來、從平台回來）時，
   // 用裝置憑證問一次伺服器目前的未讀數（op pushstate，唯讀）→ 設定圖示數字；已關閉／未開放 → 照 __tmBd 的處理（退訂、清掉）。20 秒內不重複問。
@@ -79,7 +83,7 @@
   }
   swBadge();
   // 11/19：快速啟動的回覆比 push.js 先到（index.html 先存在 __tmBdQ）→ 這裡補處理，不再漏掉邀請
-  if (window.__tmBdQ) { var q0 = window.__tmBdQ; window.__tmBdQ = null; try { window.__tmBd(q0[0], q0[1]); } catch (e) {} }
+  if (window.__tmBdQ) { var q0 = window.__tmBdQ; window.__tmBdQ = null; try { window.__tmBd(q0[0], q0[1], q0[2]); } catch (e) {} }
   function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
   function enable() {
     var p; try { p = Notification.requestPermission(); } catch (e) { p = Promise.resolve('denied'); }
