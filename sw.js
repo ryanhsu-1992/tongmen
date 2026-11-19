@@ -11,6 +11,19 @@ self.addEventListener('push', function (e) {
   if (n >= 0 && self.navigator && self.navigator.setAppBadge) jobs.push((n > 0 ? self.navigator.setAppBadge(n) : self.navigator.clearAppBadge()).catch(function () {}));
   e.waitUntil(Promise.all(jobs));
 });
+// 11/19：入口頁一打開就把「裝置憑證＋入口的平台網址」交給這裡，由這裡（不會因入口換頁而中斷）問伺服器目前的未讀數、設定／清除圖示數字。
+// 以前只靠入口頁等快速啟動的回覆；入口頁馬上換成平台，回覆來不及處理，數字就清不掉。只用唯讀的 pushstate。
+self.addEventListener('message', function (e) {
+  var d = e.data || {};
+  if (d.t !== 'badge' || !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(d.u)) || !/^[DM][0-9a-f]{10}\.[0-9a-f]{64}$/.test(String(d.dc))) return;
+  e.waitUntil(fetch(d.u, { method: 'POST', body: JSON.stringify({ op: 'pushstate', dc: d.dc }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (!j || !j.ok || !j.allowed || !self.navigator || !self.navigator.setAppBadge) return;
+      var n = j.on ? Math.max(0, Number(j.n) || 0) : 0;
+      return n > 0 ? self.navigator.setAppBadge(n) : self.navigator.clearAppBadge();
+    }).catch(function () {}));
+});
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {

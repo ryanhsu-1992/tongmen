@@ -64,6 +64,15 @@
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refresh(); });
   window.addEventListener('pageshow', function (e) { if (e.persisted) refresh(); });
   window.addEventListener('focus', refresh);
+  // 11/19：入口一打開（App、已開啟通知數字）就請 service worker 去問未讀數並設定圖示數字——它不會因入口馬上換成平台而中斷。
+  // 同時檢查 sw.js 有沒有新版（舊版不認得這個訊息，下一次打開就會用新版）。
+  function swBadge() {
+    if (!SA || !SUP || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !/^https:\/\/script\.google\.com\//.test(U())) return;
+    var m = { t: 'badge', u: U().split('#')[0].split('?')[0], dc: dk() };
+    try { var c = navigator.serviceWorker.controller; if (c) c.postMessage(m); } catch (e) {}
+    try { navigator.serviceWorker.getRegistration('./').then(function (r) { if (!r) return; r.update().catch(function () {}); var w = r.waiting || r.installing; if (w) try { w.postMessage(m); } catch (e) {} }).catch(function () {}); } catch (e) {}
+  }
+  swBadge();
   // 11/19：快速啟動的回覆比 push.js 先到（index.html 先存在 __tmBdQ）→ 這裡補處理，不再漏掉邀請
   if (window.__tmBdQ) { var q0 = window.__tmBdQ; window.__tmBdQ = null; try { window.__tmBd(q0[0], q0[1]); } catch (e) {} }
   function bar(on, msg) { var b = el('bdBar'); if (b) b.style.display = on ? '' : 'none'; var m = el('bdMsg'); if (m) { m.style.display = msg ? '' : 'none'; if (msg) m.textContent = msg; } }
