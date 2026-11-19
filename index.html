@@ -23,7 +23,7 @@ try{fetch(u+'?dvpair='+p,{cache:'no-store',credentials:'omit'}).then(function(r)
 // 快速啟動（2026-10-28）：已記住這支手機（有憑證、沒登出）→ 不再先等配對碼（以前每次最多等 2.5 秒）。
 // 產生一次性啟動碼 l，把「憑證＋配對碼＋l」用 POST 內容交給伺服器（不在網址），同時立刻前往 exec?lw=l；伺服器驗證完、平台直接顯示首頁。
 // 回覆（領回的記住／登出等）照舊存進 App；這次帶出去的配對碼繼續使用（不清掉），平台之後的記住／登出還是存在同一個配對碼。
-function dg(){try{return 'c'+((navigator.serviceWorker&&navigator.serviceWorker.controller)?1:0)+'o'+(g('tm_bd_ok')==='1'?1:0)+'p'+((window.Notification&&Notification.permission==='granted')?1:0)+'s'+(SA?1:0)+'b'+(('setAppBadge' in navigator)?1:0)}catch(e){return 'x0'}}
+function dg(){try{return 'c'+((navigator.serviceWorker&&navigator.serviceWorker.controller)?1:0)+'o'+(g('tm_bd_ok')==='1'?1:0)+'p'+((window.Notification&&Notification.permission==='granted')?1:0)+'s'+(SA?1:0)+'b'+(('setAppBadge' in navigator)?1:0)+'v4'}catch(e){return 'x0'}}
 function br(){var ua=navigator.userAgent||'',ipad=/iPad/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);return SA?(ipad?'iPad App':'iPhone App'):''}
 function fast(){var d=dk();if(!d||g(L)||!window.fetch)return false;var l;try{l=rnd()}catch(e){return false}var f=frag(),p=g(P),ua=navigator.userAgent||'',t0=Date.now();
 // Safari／iPhone（WebKit）：POST 用 keepalive 送出後立刻換頁（實測 WebKit 可讀回覆）；其他瀏覽器（Chrome 的 keepalive 遇到轉址讀不到回覆）：等回覆再換頁，最多 6 秒
@@ -65,4 +65,4 @@ document.addEventListener('DOMContentLoaded',function(){var b=document.getElemen
 <script>setTimeout(function(){var m=document.getElementById('more');if(m)m.className='more on'},5000)</script>
 <div class="bd-bar" id="bdBar" role="region" aria-label="圖示通知數字" style="display:none"><div class="bd-i"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></div><div><strong>要開啟圖示上的未讀數字嗎？</strong><p>有新公告時，主畫面圖示右上角會出現紅底白字的數字，也會跳出一則通知提醒您。之後可以在「我的資料」隨時關閉。</p><div class="bd-acts"><button type="button" class="p" id="bdYes">開啟</button><button type="button" id="bdLater">之後再說</button></div></div></div>
 <p class="bd-msg" id="bdMsg" style="display:none"></p>
-</div><script src="push.js?v=1119c"></script></body></html>
+</div><script src="push.js?v=1119d"></script></body></html>

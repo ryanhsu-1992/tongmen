@@ -63,7 +63,7 @@
   // 用裝置憑證問一次伺服器目前的未讀數（op pushstate，唯讀）→ 設定圖示數字；已關閉／未開放 → 照 __tmBd 的處理（退訂、清掉）。20 秒內不重複問。
   var loadedAt = Date.now(), lastRef = 0;
   function refresh() {
-    if (!SA || !SUP || pending || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !U()) return;
+    if (!SA || !SUP || pending || perm() !== 'granted' || !dk() || !U()) return;   // 11/19：不再看本機旗標 tm_bd_ok（它會掉，掉了就再也不更新）；以伺服器回覆為準：沒開放會員伺服器回 allowed:false → 不動數字
     var t = Date.now(); if (t - loadedAt < 8000 || t - lastRef < 8000) return; lastRef = t;   // 11/19：20 秒改 8 秒（平台裡讀完公告、關掉視窗常常不到 20 秒；swBadge 啟動時問的那次不重複就好）
     post('pushstate', { s: 'pg' }).then(function (r) { if (!r || !r.ok) return; window.__tmDg = r.dg ? 1 : 0; window.__tmBd(r.allowed ? (r.on ? 1 : 0) : undefined, r.n); }, function () {});
   }
@@ -76,7 +76,7 @@
   // 11/19：入口一打開（App、已開啟通知數字）就請 service worker 去問未讀數並設定圖示數字——它不會因入口馬上換成平台而中斷。
   // 同時檢查 sw.js 有沒有新版（舊版不認得這個訊息，下一次打開就會用新版）。
   function swBadge() {
-    if (!SA || !SUP || perm() !== 'granted' || g(OKK) !== '1' || !dk() || !/^https:\/\/script\.google\.com\//.test(U())) return;
+    if (!SA || !SUP || perm() !== 'granted' || !dk() || !/^https:\/\/script\.google\.com\//.test(U())) return;
     var m = { t: 'badge', u: U().split('#')[0].split('?')[0], dc: dk() };
     try { var c = navigator.serviceWorker.controller; if (c) c.postMessage(m); else navigator.serviceWorker.ready.then(function (r) { if (r && r.active && !navigator.serviceWorker.controller) r.active.postMessage(m); }).catch(function () {}); } catch (e) {}   // 11/19：頁面還沒被 SW 接管（controller 為空）時，改直接交給 active 的 SW
     try { navigator.serviceWorker.getRegistration('./').then(function (r) { if (!r) return; r.update().catch(function () {}); var w = r.waiting || r.installing; if (w) try { w.postMessage(m); } catch (e) {} }).catch(function () {}); } catch (e) {}
